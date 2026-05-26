@@ -1,0 +1,17 @@
+// amscf.scs
+simulator lang=spectre
+
+include "comparator_SPICE.scs"
+include "acf.scs"
+
+// The AMSD Bridge Block
+amsd {
+    // Set the Interface Element (IE) voltage for digital-to-analog conversion
+    ie vsup=0.65  
+
+    // Tell the simulator the port names match between SV and SPICE
+    portmap subckt=comparator_SPICE
+
+    // Force the simulator to use SPICE for this specific cell
+    config inst=comparator_tb.dut_SPICE use=spice
+}

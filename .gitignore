@@ -1,0 +1,15 @@
+# Simulation junk
+*.log
+*.vcd
+*.dump
+obj_dir/
+*.o
+*.d
+temp/
+# old testbench + model
+RNM_model/
+# UVM training
+UVM_training/
+
+# VS Code junk
+.vscode/

@@ -1,0 +1,109 @@
+// Point Netlist Generated on: Apr 24 13:38:07 2026
+// Generated for: spectre
+// Design Netlist Generated on: Apr 24 13:38:05 2026
+// Design library name: u4428_UHF_tb
+// Design cell name: tb_am_sense_current
+// Design view name: config
+simulator lang=spectre
+//include "ade_e.scs"
+global 0
+include "/import/projdk/oa_design_kits_cadence/u40sonos/0.4/patches/0.4.8/simulation/ams_spectre/prims/models/soa.rules"
+include "/import/projdk/oa_design_kits_cadence/u40sonos/0.4/simulation/ams_spectre/stdcells/stdcells.spi"
+parameters ibias Ishunt=25n pct=5 Vdd=.75
+include "/import/projdk/oa_design_kits_cadence/u40sonos/0.4/patches/0.4.8/simulation/ams_spectre/prims/models/l40ulp_mm_v161.lib.scs" section=tt
+include "/import/projdk/oa_design_kits_cadence/u40sonos/0.4/patches/0.4.8/simulation/ams_spectre/prims/models/esonos40n_mm_mv5p0_v101.lib.scs" section=tt_mv_50
+include "/import/projdk/oa_design_kits_cadence/u40sonos/0.4/patches/0.4.8/simulation/ams_spectre/prims/models/esonos40n_mm_mv9p0_v101.lib.scs" section=tt_mv_90
+include "/import/projdk/oa_design_kits_cadence/u40sonos/0.4/patches/0.4.8/simulation/ams_spectre/prims/models/l40ulp_rf_v111.lib.scs" section=tt
+
+// --- SUB-COMPONENTS ---
+subckt u4428_inv_hvt in out vdd vss
+    PM0 (out in vdd vdd) p_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM0 (out in vss vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+ends u4428_inv_hvt
+
+subckt RNMR_LP_pcell_0 PLUS MINUS B
+parameters segW=2u segL=8u multi1=(1) mis_flag1=1
+    R0 (PLUS MINUS B) rnmr_lp w=segW l=segL mf=multi1 mis_flag=mis_flag1
+ends RNMR_LP_pcell_0
+
+subckt u4428_nand_hvt in1 in2 out vdd vss
+    NM1 (net1 in2 vss vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM0 (out in1 net1 vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM1 (out in1 vdd vdd) p_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM0 (out in2 vdd vdd) p_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+ends u4428_nand_hvt
+
+subckt u4428_nor_hvt in1 in2 out vdd vss
+    NM0 (out in1 vss vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM2 (out in2 vss vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM0 (net2 in2 vdd vdd) p_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM1 (out in1 net2 vdd) p_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+ends u4428_nor_hvt
+
+subckt u4428_inv_svt in out vdd vss
+    NM0 (out in vss vss) n_11_lprvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM0 (out in vdd vdd) p_11_lprvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+ends u4428_inv_svt
+
+subckt u4428_afe_tgate in on onb out vdd vss
+    PM0 (in onb out vdd) p_11_lprvt m=1 mf=1 w=600n l=60n nf=1 ad=66f as=66f pd=1.42u ps=1.42u sa=110n sb=110n sd=0 sca=73.5294 scb=26.3869m scc=6.66754m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM0 (in on out vss) n_11_lprvt m=1 mf=1 w=600n l=60n nf=1 ad=78f as=78f pd=1.46u ps=1.46u sa=130n sb=130n sd=0 sca=73.5294 scb=26.3869m scc=6.66754m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+ends u4428_afe_tgate
+
+subckt u4428_afe_tgateHVT in on onb out vdd vss
+    NM0 (in on out vss) n_11_lphvt m=1 mf=1 w=500n l=60n nf=1 ad=65f as=65f pd=1.26u ps=1.26u sa=130n sb=130n sd=0 sca=86.2069 scb=28.9543m scc=7.88205m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM0 (in onb out vdd) p_11_lprvt m=1 mf=1 w=500n l=60n nf=1 ad=55f as=55f pd=1.22u ps=1.22u sa=110n sb=110n sd=0 sca=86.2069 scb=28.9543m scc=7.88205m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+ends u4428_afe_tgateHVT
+
+// --- COMPARATOR ---
+// The port names here match your SystemVerilog module perfectly.
+subckt comparator am_clk_sample am_short am_invert in inv_bias am_cmpr_out am_complete vdd vss
+
+    I74 (net110 net109 vdd vss) u4428_inv_hvt
+    I63 (c2 net1 vdd vss) u4428_inv_hvt
+    I61 (net9 net119 vdd vss) u4428_inv_hvt
+    R0 (vdd net3 vdd) RNMR_LP_pcell_0 m=1 segW=100n segL=2.3u multi1=(1) mis_flag1=1
+    C2 (vsample vss) ncap_25_lp wf=4.22u lf=2.515u nf=2 m=4 mf=4 mis_flag=1
+    C1 (net9 net119 vss) momcaps_sy_mmkf l=2.25u nf=16 nm=4 bm=2 m=1 metal_ring_flag=0 shielding_flag=0 presim_flag=1 mis_flag=1
+    C3 (net110 net109 vss) momcaps_sy_mmkf l=2.25u nf=16 nm=4 bm=2 m=1 metal_ring_flag=0 shielding_flag=0 presim_flag=1 mis_flag=1
+    C7 (net118 net115 vss) momcaps_sy_mmkf l=9u nf=28 nm=5 bm=2 m=1 metal_ring_flag=0 shielding_flag=0 presim_flag=1 mis_flag=1
+    C0 (vsample vss vss) momcaps_sy_mmkf l=6.915u nf=66 nm=5 bm=2 m=1 metal_ring_flag=0 shielding_flag=0 presim_flag=1 mis_flag=1
+    NM0 (c1 net115 net45 vss) n_11_lprvt m=1 mf=1 w=400n l=120n nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM4 (c2 c1 net67 vss) n_11_lprvt m=1 mf=1 w=200n l=50n nf=1 ad=26f as=26f pd=660n ps=660n sa=130n sb=130n sd=0 sca=178.571 scb=34.6615m scc=14.4428m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM5 (net45 net115 vss vss) n_11_lprvt m=1 mf=1 w=400n l=120n nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM0 (net114 in net3 vdd) p_11_lprvt m=5 mf=5 w=4.25u l=400n nf=1 ad=552.5f as=552.5f pd=8.76u ps=8.76u sa=130n sb=130n sd=0 sca=11.5473 scb=4.41623m scc=951.52u mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM1 (net2 in vdd vdd) p_11_lprvt m=3 mf=3 w=4.25u l=400n nf=1 ad=552.5f as=552.5f pd=8.76u ps=8.76u sa=130n sb=130n sd=0 sca=11.5473 scb=4.41623m scc=951.52u mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM8 (c1 net115 net116 vdd) p_11_lprvt m=1 mf=1 w=400n l=120n nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM1 (net45 c2 vss vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM2 (net67 inv_onb vss vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM2 (net116 inv_bias vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM3 (net90 inv_bias vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM4 (net117 inv_bias vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM5 (inv_bias inv_bias net117 vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM6 (c2 inv_onb vdd vdd) p_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM7 (c2 c1 net90 vdd) p_11_lphvt m=1 mf=1 w=200n l=50n nf=1 ad=26f as=26f pd=660n ps=660n sa=130n sb=130n sd=0 sca=178.571 scb=34.6615m scc=14.4428m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    I68 (am_invert net109 net4 vdd vss) u4428_nand_hvt
+    I3 (net4 net8 in_on vdd vss) u4428_nor_hvt
+    I5 (am_clk_sample net7 net8 vdd vss) u4428_nor_hvt
+    I60 (net119 fsintb_d vdd vss) u4428_inv_svt
+    I65 (fsintb_d fsint_d vdd vss) u4428_inv_svt
+    I70 (in_on in_onb vdd vss) u4428_inv_svt
+    I71 (inv_onb inv_on vdd vss) u4428_inv_svt
+    I4 (inv_on net7 vdd vss) u4428_inv_svt
+    NM8 (net12 vsample net5 vss) n_elvt m=1 mf=1 w=3u l=80n nf=3 ad=270f as=270f pd=4.54u ps=4.54u sa=130n sb=130n sd=140n sca=46.2963 scb=18.1908m scc=4.04276m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    NM7 (net5 vsample vss vss) n_25ud18_lp m=1 mf=1 w=10u l=320n nf=8 ad=1.1p as=1.25p pd=11.76u ps=14.5u sa=170n sb=170n sd=220n sca=12.3686 scb=11.0986m scc=1.41825m mis_flag=1 rdscon_flag=1 cctg_flag=1
+    NM3 (vss vss vss vss) n_25ud18_lp m=2 mf=2 w=1.25u l=320n nf=1 ad=212.5f as=212.5f pd=2.84u ps=2.84u sa=170n sb=170n sd=0 sca=12.3686 scb=11.0986m scc=1.41825m mis_flag=1 rdscon_flag=1 cctg_flag=1
+    I6 (am_clk_sample am_invert vss vdd vdd vss net110) SVH_NR2_L50_1
+    I7 (am_complete am_short vss vdd vdd vss inv_onb) SVH_NR2_L50_1
+    I8 (am_clk_sample vss vdd vdd vss net9) SVH_INV_L50_1
+    
+    I10 (net1 vss vdd vdd vss am_cmpr_out) SVH_INV_L50_1
+    
+    I1 (vsample fsint_d fsintb_d net12 vdd vss) u4428_afe_tgate
+    I58 (net115 inv_on inv_onb c1 vdd vss) u4428_afe_tgateHVT
+    I0 (net12 in_on in_onb net118 vdd vss) u4428_afe_tgateHVT
+    PM11 (vdd vdd vdd vdd) p_elvt m=2 mf=2 w=4u l=50n nf=1 ad=520f as=520f pd=8.26u ps=8.26u sa=130n sb=130n sd=0 sca=12.2549 scb=4.69224m scc=1.01099m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM9 (net12 in net114 vdd) p_elvt m=2 mf=2 w=20u l=50n nf=5 ad=1.64p as=1.64p pd=24.82u ps=24.82u sa=130n sb=130n sd=140n sca=12.2549 scb=4.69224m scc=1.01099m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM10 (in in net2 vdd) p_elvt m=2 mf=2 w=12u l=50n nf=3 ad=1.08p as=1.08p pd=16.54u ps=16.54u sa=130n sb=130n sd=140n sca=12.2549 scb=4.69224m scc=1.01099m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+
+ends comparator
