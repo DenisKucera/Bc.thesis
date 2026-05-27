@@ -7,10 +7,12 @@
  */
 
 module tb_top;
-    //AMS co-simulation is turned-off by default
-    parameter bit ENABLE_AMS=0;
+    //DMS co-simulation is turned-off by default
+    parameter bit ENABLE_MS=0;
     //Enables to run environment only for UVM architecture check
     parameter bit TEST_DUT=0;
+    //coverage control enable/disable
+    parameter bit COVERAGE=0;
 
     `include "uvm_macros.svh"
     import uvm_pkg::*;
@@ -37,7 +39,7 @@ module tb_top;
     comparator_RNM dut_rnm(
         .vss           (vif.vss),
         .am_clk_sample (vif.am_clk_sample),
-        .am_cmpr_out   (vif.am_cmpr_out_RNM), // Changed from am_cmpr_out to match common naming
+        .am_cmpr_out   (vif.am_cmpr_out_rnm), // Changed from am_cmpr_out to match common naming
         .am_complete   (vif.am_complete),
         .am_invert     (vif.am_invert),
         .am_short      (vif.am_short),
@@ -48,9 +50,10 @@ module tb_top;
         .vdd           (vif.vdd)
     );
     
-    if (ENABLE_AMS) begin: dut_spice_inst
+
+    if (ENABLE_MS) begin: dut_spice_inst
         //analog model instance
-        comparator_SPICE dut_spice(
+        comparator dut_spice(
             .vss           (vif.w_vss),
             .am_clk_sample (vif.w_am_clk_sample),
             .am_cmpr_out   (vif.w_cmpr_out_spice),
@@ -61,7 +64,7 @@ module tb_top;
             .inv_bias      (vif.w_inv_bias),
             .vdd           (vif.w_vdd)
         );
-    end: dut_spice_inst
+        end: dut_spice_inst
     end
 
     // ADD THIS BLOCK TO ENABLE WAVEFORM DUMPING
@@ -78,8 +81,12 @@ module tb_top;
         //set vif globally for all components
         uvm_config_db#(virtual comp_if)::set(null, "uvm_test_top.m_env_top.m_comp_env.m_comp_agent*", "m_vif", vif);
         //pass config bit to UVM
-        uvm_config_db#(int)::set(null, "uvm_test_top.m_env_top.m_comp_env.m_comp_agent*", "AMS CO-SIMULATION ENABLED!", ENABLE_AMS);
+        uvm_config_db#(int)::set(null, "uvm_test_top.m_env_top.m_comp_env.m_comp_agent*", "DMS CO-SIMULATION ENABLED!", ENABLE_MS);
+        //pass coverage control bit to comp UVC env
+        uvm_config_db#(int)::set(null, "uvm_test_top.m_env_top.m_comp_env*", "COVERAGE TRACKING ENABLED!", COVERAGE);
     end
+
+    
 
     // define initial clock value and generate reset
     initial begin : clock_and_rst_init_block

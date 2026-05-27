@@ -17,7 +17,7 @@ VFLAGS = --binary --timing --trace-fst -Wno-fatal -j 4 \
          --language 1800-2023 \
          --timescale 1ns/1ps \
 		 -DVM_TRACE=1 \
-         -GENABLE_AMS=0 \
+         -GENABLE_MS=0 \
          -GTEST_DUT=0 \
 		 +define+UVM_NO_DPI \
 		 --top $(TOP_MODULE) \

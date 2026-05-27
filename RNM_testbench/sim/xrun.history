@@ -1,0 +1,2 @@
+#e1(26May2026:12:36:04): source ./xcelium.d/env.d/env.history.26May2026_12_36_04
+s1(26May2026:12:36:04):  xrun -clean -dms_cosim -sv_ms -spectre_args +preset=mx 
