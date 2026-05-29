@@ -64,21 +64,24 @@ class comp_scoreboard extends uvm_scoreboard;
     virtual function void write(comp_item item);
         string msg;
         real delta_current;
+        real abs_delta;
 
         // Calculate the difference for easy debugging
+        
         delta_current = (item.comp_compare_curr - item.comp_stored_curr) * 1e6; // in uA
+        abs_delta = (delta_current < 0.0) ? -delta_current : delta_current;
 
         // Create a high-visibility "Data Trace"
         msg = $sformatf("\n+--------------------------------------------------+");
         msg = {msg, $sformatf("\n| RECEIVED ITEM <- COMPARATOR                      |")};
         msg = {msg, $sformatf("\n+--------------------------------------------------+")};
-        msg = {msg, $sformatf("\n| State Path:   %s -> %s (%s)             |", item.state.name(), item.next_state.name(), item.state_transition.name())};
-        msg = {msg, $sformatf("\n| Supply:       VDD = %0.3f V                      |", item.comp_vdd)};
-        msg = {msg, $sformatf("\n+--------------------------------------------------+")};
         msg = {msg, $sformatf("\n| ANALOG DATA:                                     |")};
-        msg = {msg, $sformatf("\n| [T_sample]  Stored I:  %10.3f uA             |", item.comp_stored_curr * 1e6)};
-        msg = {msg, $sformatf("\n| [T_compare] Input I:   %10.3f uA             |", item.comp_compare_curr * 1e6)};
-        msg = {msg, $sformatf("\n| [Result]    DIFF (I):  %10.3f uA             |", delta_current)};
+        //msg = {msg, $sformatf("\n| State Path:   %s -> %s (%s)             |", item.state.name(), item.next_state.name(), item.state_transition.name())};
+        msg = {msg, $sformatf("\n| Supply:       VDD = %0.3f V                      |", item.comp_vdd)};
+        //msg = {msg, $sformatf("\n+--------------------------------------------------+")};
+        msg = {msg, $sformatf("\n| [sample]  Stored I:  %10.3f uA               |", item.comp_stored_curr * 1e6)};
+        msg = {msg, $sformatf("\n| [compare] Input I:   %10.3f uA               |", item.comp_compare_curr * 1e6)};
+        msg = {msg, $sformatf("\n| [Result]    DIFF (I):  %10.3f uA             |", abs_delta)};
         msg = {msg, $sformatf("\n+--------------------------------------------------+")};
         msg = {msg, $sformatf("\n| COMPARATOR RESPONSE:                             |")};
         msg = {msg, $sformatf("\n| RNM OUT:    %b                                    |", item.comp_out)};

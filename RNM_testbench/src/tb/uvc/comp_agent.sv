@@ -8,8 +8,7 @@
 
 class comp_agent extends uvm_agent;
 
-  // predeclared field inherited from uvm_agent determines whether an agent is active or passive.
-  // uvm_active_passive_enum is_active = UVM_ACTIVE;  //  This field determines whether an agent is active or passive.
+  uvm_active_passive_enum is_active = UVM_ACTIVE;  //  This field determines whether an agent is active or passive.
 
   // virtual interface reference
   virtual interface comp_if m_vif;
@@ -19,7 +18,7 @@ class comp_agent extends uvm_agent;
   comp_driver    m_comp_driver;
 
   //for scoreboard
-  int ams_enabled;
+  int ms_enabled;
   
   // component macro
   `uvm_component_utils_begin(comp_agent)
@@ -39,9 +38,9 @@ class comp_agent extends uvm_agent;
     if(!uvm_config_db#(virtual comp_if)::get(this, "", "m_vif", m_vif)) begin
       `uvm_fatal(get_type_name(), "Failed to get virtual interface from config DB!")
     end
-    if (!uvm_config_db#(int)::get(this, "", "AMS CO-SIMULATION ENABLED!", ams_enabled)) begin
-      `uvm_info(get_type_name(), "AMS setting not found, defaulting to 0", UVM_LOW)
-      ams_enabled = 0; // Default to RNM only if not found
+    if (!uvm_config_db#(int)::get(this, "", "DMS CO-SIMULATION ENABLED!", ms_enabled)) begin
+      `uvm_info(get_type_name(), "MS setting not found, defaulting to 0", UVM_LOW)
+      ms_enabled = 0; // Default to RNM only if not found
     end
 
     m_comp_monitor = comp_monitor::type_id::create("m_comp_monitor", this);
@@ -53,13 +52,13 @@ class comp_agent extends uvm_agent;
 
   // UVM connect_phase() method
   function void connect_phase(uvm_phase phase);
-    if (is_active == UVM_ACTIVE) begin
-        //passing vif
-        m_comp_monitor.m_vif = m_vif;
+    super.connect_phase(phase); 
+      m_comp_monitor.m_vif = m_vif;
+
+      if (is_active == UVM_ACTIVE) begin
         m_comp_driver.m_vif = m_vif;
-      end 
-      // Connect the driver and the sequencer 
-      m_comp_driver.seq_item_port.connect(m_comp_sequencer.seq_item_export);
+        m_comp_driver.seq_item_port.connect(m_comp_sequencer.seq_item_export);
+    end
   endfunction : connect_phase
 
   function void start_of_simulation_phase(uvm_phase phase);

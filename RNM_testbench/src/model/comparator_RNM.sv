@@ -102,15 +102,24 @@ module comparator_RNM #(
         sample_start_time <= $realtime;
     end
 
-    always @(negedge am_clk_sample) begin
-        //if (vdd >= 0.8) begin 
-            if (($realtime - sample_start_time) >= ACQ_TIME) begin
-                // Použití funkce, blokující přiřazení
-                stored_current <= apply_saturation(in);
-            end else begin
-                $warning("Acquisition time violation. Sample discarded.");
-            end
-        //end
+    always @(negedge am_invert iff(am_short)) begin 
+        
+        real charge_factor;
+
+        if ($realtime - sample_start_time >= (ACQ_TIME/5)) begin
+            // If held for 10us or more, it is 100% fully settled
+            stored_current <= apply_saturation(in);
+        end else begin
+            // THE PHYSICS ENGINE
+            // Calculate the partial charge based on the exponential curve
+            charge_factor = 1.0 - $exp(-($realtime - sample_start_time) / (ACQ_TIME/5));
+            
+            // Store the partially settled value!
+            stored_current <= apply_saturation(in) * charge_factor;
+            
+            $info("RNM: Sample switch opened early (%0.0f ns). Capacitor reached %0.1f%% charge.", 
+                  ($realtime - sample_start_time), charge_factor * 100.0);
+        end
     end
 
     // AUTO-ZERO

@@ -20,7 +20,7 @@ interface comp_if ();
     logic am_invert;
     logic am_short;
 
-    logic am_cmpr_out_RNM;
+    logic am_cmpr_out_rnm;
 
     real  in;
     real  inv_bias;
@@ -37,29 +37,47 @@ interface comp_if ();
     wire w_am_complete   = am_complete;
     
     // For real numbers, use 'wire real' to satisfy the continuous assignment
-    wire w_in            = in;
-    wire w_vdd           = vdd;
-    wire w_vss           = vss;
-    wire w_inv_bias      = inv_bias;
+    /*if (tb_top.ENABLE_AMS) begin
+        wreal w_in = in;
+        wreal w_vdd = vdd;
+        wreal w_vss = vss;
+        wreal w_inv_bias = inv_bias;
+    end*/
+    typedef enum bit [2:0] {
+        IDLE    = 3'b000,
+        SAMPLE  = 3'b001,
+        HOLD    = 3'b010,
+        COMPARE = 3'b011,
+        GLITCH  = 3'b100
+    } debug_state_e;
+
+    debug_state_e debug_state;
+
+    // 2. Create a string variable to hold the name
+    string state_name;
+
+    // 3. Automatically update the string whenever the state changes
+
+    assign state_name = debug_state.name();
     
     // Wire for the output
     wire      w_cmpr_out_spice; 
-    logic     am_cmpr_out_SPICE = w_cmpr_out_spice;
+    logic     am_cmpr_out_spice;
+    assign   am_cmpr_out_spice = w_cmpr_out_spice;
 
-    // 2. Physical DUT Connections (Nets & UDNs)
-    // We declare the UDNs here in the interface
-    //cmpr_udn_net vdd_rail;
-    
-    // Standard nets
-    //wire real w_in;
-    //wire      w_cmpr_out; // Read by the UVM Monitor
+    /*module real_wire_bridge (
+    input  logic [63:0] wire_in,  // 64-bit wire to carry real bits
+    output logic [63:0] wire_out
+    );
+    real my_real_val;
 
-    // 3. The Translation Layer (Variable -> Net)
-    // Continuous assignment pushes the UVM driver's variable onto the real wire
-    //assign w_in = drv_in_current;
-    
-    // Push the UVM variable into the UDN structure!
-    //assign vdd_rail = '{v_vdd: drv_vdd_voltage, i_idd: 0.0};
+    // Convert bits from the wire into a real number
+    assign my_real_val = $bitsastoreal(wire_in);
+
+    // Convert the real number back to bits to drive a wire
+    assign wire_out = $realtobits(my_real_val + 1.5);
+
+    endmodule */
 
 endinterface
 

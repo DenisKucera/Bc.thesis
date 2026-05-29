@@ -39,7 +39,7 @@ build:
 
 run:
 	@echo "--- Running Simulation ---"
-	./obj_dir/V$(TOP_MODULE) +UVM_TESTNAME=comp_base_test
+	./obj_dir/V$(TOP_MODULE) +UVM_TESTNAME=comp_sanity_test
 
 waves:
 	@echo "--- Opening GTKWave ---"

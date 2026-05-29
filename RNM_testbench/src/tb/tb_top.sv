@@ -12,7 +12,7 @@ module tb_top;
     //Enables to run environment only for UVM architecture check
     parameter bit TEST_DUT=0;
     //coverage control enable/disable
-    parameter bit COVERAGE=0;
+    //parameter bit COVERAGE=0;
 
     `include "uvm_macros.svh"
     import uvm_pkg::*;
@@ -83,7 +83,7 @@ module tb_top;
         //pass config bit to UVM
         uvm_config_db#(int)::set(null, "uvm_test_top.m_env_top.m_comp_env.m_comp_agent*", "DMS CO-SIMULATION ENABLED!", ENABLE_MS);
         //pass coverage control bit to comp UVC env
-        uvm_config_db#(int)::set(null, "uvm_test_top.m_env_top.m_comp_env*", "COVERAGE TRACKING ENABLED!", COVERAGE);
+        //uvm_config_db#(int)::set(null, "uvm_test_top.m_env_top.m_comp_env*", "COVERAGE TRACKING ENABLED!", COVERAGE);
     end
 
     
