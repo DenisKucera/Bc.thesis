@@ -9,13 +9,6 @@ class comp_driver extends uvm_driver #(comp_item);
 
   virtual interface comp_if m_vif;
 
-  /*typedef enum{
-    IN,
-    INV_BIAS,
-    VDD,
-    VSS
-  } drive_pin_e;*/
-
   // component macro
   `uvm_component_utils_begin(comp_driver)
 
@@ -58,7 +51,7 @@ class comp_driver extends uvm_driver #(comp_item);
             end
             
             // Analog threads
-            begin drive_analog(req.in_samples, req.cfg_in_curr.step_ps, req.cfg_in_curr); end
+            begin drive_analog(req.in_samples, req.cfg_in.step_ps, req.cfg_in); end
             begin drive_analog(req.vdd_samples, req.cfg_vdd.step_ps, req.cfg_vdd); end
             begin drive_analog(req.bias_samples, req.cfg_bias.step_ps, req.cfg_bias); end
           join_any // As soon as ANY thread finishes, move on
@@ -128,7 +121,7 @@ class comp_driver extends uvm_driver #(comp_item);
             
             // Drive the analog pin
             case(drive_pin)
-              req.cfg_in_curr: m_vif.in = number_of_samples[i];
+              req.cfg_in: m_vif.in = number_of_samples[i];
               req.cfg_bias: m_vif.inv_bias = number_of_samples[i];
               req.cfg_vdd: m_vif.vdd = number_of_samples[i];
               //VSS: m_vif.vss = number_of_samples[i];

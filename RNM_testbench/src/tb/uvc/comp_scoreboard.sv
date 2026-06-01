@@ -99,6 +99,32 @@ class comp_scoreboard extends uvm_scoreboard;
         `uvm_info("SCB_DEBUG", msg, UVM_LOW)
     endfunction
 
+
+    function bit predict_output(real stored_i, real compare_i);
+      if (compare_i > stored_i) return 1'b1;
+      else return 1'b0;
+    endfunction
+
+
+  // The dB Calculator
+  function real calculate_db_diff(real stored_i, real compare_i);
+      real ratio;
+      real db_diff;
+      // Safety catch: Prevent divide-by-zero or math domain errors
+      if (stored_i <= 1e-12 || compare_i <= 1e-12) return 0.0; 
+      
+      ratio = compare_i / stored_i;
+      
+      // Calculate Decibels using SystemVerilog's built-in log10
+      db_diff = 10.0 * $log10(ratio);
+      //return absolute value
+      return (db_diff < 0.0) ? -db_diff : db_diff;
+  endfunction
+
+  function void check_sample_time();
+    
+  endfunction
+
 // UVM check_phase
     function void check_phase(uvm_phase phase);
 

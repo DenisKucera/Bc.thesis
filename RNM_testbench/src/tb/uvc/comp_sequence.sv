@@ -14,18 +14,22 @@ class comp_sequence extends uvm_sequence#(comp_item);
   `uvm_declare_p_sequencer(comp_sequencer)
 
   //sequence control fields
-  int num_compares = 100;
+  int num_compares;
   comp_item::comp_state_e start_state = comp_item::IDLE;
 
     // AWG Waveform Controls
-    real wave_amplitude = 20.0e-6; // 20uA
+  /*   real wave_amplitude = 20.0e-6; // 20uA
     real wave_period_ns = 50.0;    // 50ns
-    int  analog_step_ps = 100;     // 100ps steps
+    int  analog_step_ps = 100;     // 100ps steps*/
 
     // Waveform Configurations
-    comp_item::wave_config_s cfg_in_curr;
+    comp_item::wave_config_s cfg_in;
     comp_item::wave_config_s cfg_bias;
     comp_item::wave_config_s cfg_vdd;
+    comp_item::wave_config_s cfg_vss;
+
+    comp_item::comp_control_e cfg_state_transition;
+    comp_item::comp_control_e           cfg_timing;
 
     longint seq_timer_ps = 0;
 
@@ -33,10 +37,10 @@ class comp_sequence extends uvm_sequence#(comp_item);
   function new(string name="comp_sequence");
     super.new(name);
 
-    cfg_in_curr = '{w_type: comp_item::NOISE, offset: 1.0e-6,  amplitude: 0.5e-6, period_ps: 50, step_ps: 500};
+    cfg_in      = '{w_type: comp_item::NOISE, offset: 1.0e-6,  amplitude: 0.5e-6, period_ps: 50, step_ps: 500};
     cfg_bias    = '{w_type: comp_item::STATIC, offset: 0.0,     amplitude: 0.0, period_ps: 50, step_ps: 100};
     cfg_vdd     = '{w_type: comp_item::STATIC, offset: 0.8,     amplitude: 0.0, period_ps: 50, step_ps: 500};
-    //cfg_vss     = '{};
+    cfg_vss     = '{w_type: comp_item::STATIC, offset: 0.8,     amplitude: 0.0, period_ps: 50, step_ps: 500};
   endfunction
 
 
@@ -53,21 +57,22 @@ virtual task body();
             // Update the item's state tracker
             req.state = current_tracker;
  
-            req.cfg_in_curr   = this.cfg_in_curr;
+            req.cfg_in        = this.cfg_in;
             req.cfg_bias      = this.cfg_bias;
             req.cfg_vdd       = this.cfg_vdd;
 
             // --- B. RANDOMIZE DIGITAL PROTOCOL ---
             if (!req.randomize() with {
-                req.state_transition == comp_item::CORRECT;
-                req.timing           == comp_item::CORRECT;
+                req.state_transition == cfg_state_transition;
+                req.timing           == cfg_timing;
             }) begin
                 `uvm_fatal(get_type_name(), "Failed to randomize comp_item.")
             end
 
-            create_waveform(req.comp_delay_ps, cfg_in_curr, req.in_samples);
+            create_waveform(req.comp_delay_ps, cfg_in, req.in_samples);
             create_waveform(req.comp_delay_ps, cfg_bias,    req.bias_samples);
             create_waveform(req.comp_delay_ps, cfg_vdd,     req.vdd_samples);
+            create_waveform(req.comp_delay_ps, cfg_vss,     req.vss_samples);
 
             `uvm_info("SEQ_ITEM", req.convert2string(), UVM_LOW)
  

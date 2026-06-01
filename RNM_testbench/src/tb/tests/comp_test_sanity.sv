@@ -1,14 +1,14 @@
 /*
  * Project: RNM testbench
- * File: comp_test_timing_violation.sv
+ * File: comp_base_test.sv
  * Author: Denis Kucera
  * Created: 2026-05-30
  * Description: Base test class
  */
 
-class comp_test_timing_violation extends comp_base_test;
+class comp_test_sanity extends comp_base_test;
 
-    `uvm_component_utils(comp_test_timing_violation)
+    `uvm_component_utils(comp_test_sanity)
     
     function new(string name, uvm_component parent);
         super.new(name, parent);

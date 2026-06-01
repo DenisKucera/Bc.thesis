@@ -1,22 +1,24 @@
-// Soubor: sv/comparator_RNM.sv
-// Ver. 1.4 added (Functions + Assertions), removed bug
-// Denis Kučera
+/* 
+ * Project: RNM model
+ * File: comparator_RNM.sv
+ * Author: Denis Kucera
+ * Created: 2025-11-30
+ * Ver. 2.1 added decision time randomization and fixed current model + fix bugs
+ * Description: Base comparator sequence with derived sequences
+ */
 
 `timescale 1ns/1ps
 
 module comparator_RNM #(
-        parameter real    MAX_CURRENT   = 50.0e-6,
-        parameter real    MAX_ERR_DB    = 0.25,
-        parameter real    MIN_ERR_DB    = 0.10,
-        parameter time    ACQ_TIME      = 10us,
-        parameter time    DECISION_TIME = 0.01us,
-        parameter time    HOLD_TIME     = 300ps,
-        parameter real    BIAS_CURRENT  = 10.0e-9,
-        parameter real    CURRENT_CONSUMPTION = 35.0e-9,
-
-        // Nové parametry pro check napájení
-        parameter real    SUPPLY_MIN    = 0.65,
-        parameter real    SUPPLY_MAX    = 1.0
+        parameter real    MAX_CURRENT           = 50.0e-6,
+        parameter real    MAX_ERR_DB            = 0.25,
+        parameter real    MIN_ERR_DB            = 0.10,
+        parameter time    ACQ_TIME              = 10us,
+        parameter time    DECISION_TIME         = 2us,
+        parameter time    HOLD_TIME             = 300ps,
+        parameter real    CURRENT_CONSUMPTION   = 35.0e-9,
+        parameter real    SUPPLY_MIN            = 0.65,
+        parameter real    SUPPLY_MAX            = 1.0
     )(
         input  real  vss,
         input  logic am_clk_sample,
@@ -27,11 +29,9 @@ module comparator_RNM #(
         input  real  in,
         input  real  inv_bias,
         input  real  vdd,
-        //input  real  supply_voltage,
-        output real  current_consumption
+        output real  idd
     );
     real stored_current  = 0.0;
-    real residual_offset = 0.0;
     real current_draw;
     logic cmpr_enabled;
     logic cmpr_out;
@@ -40,7 +40,7 @@ module comparator_RNM #(
     initial cmpr_out = 1'b0;
 
 
-    // 1. Saturation
+    // Saturation
     function real apply_saturation(input real in_val);
         real abs_val;
         abs_val = (in_val < 0) ? -in_val : in_val;
@@ -63,11 +63,11 @@ module comparator_RNM #(
         mag = (eff_input < 0) ? -eff_input : eff_input;
 
         // BIAS current
-        if (mag < (BIAS_CURRENT * 1.2)) begin
+        if (mag < (inv_bias * 1.2)) begin
             return 0.0;
         end else begin
             // dyn. error
-            dyn_db = MIN_ERR_DB + (MAX_ERR_DB - MIN_ERR_DB) * (BIAS_CURRENT / mag);
+            dyn_db = MIN_ERR_DB + (MAX_ERR_DB - MIN_ERR_DB) * (inv_bias / mag);
 
             // Clamp
             if (dyn_db > MAX_ERR_DB) dyn_db = MAX_ERR_DB;
@@ -77,22 +77,22 @@ module comparator_RNM #(
             rnd_sign = ($urandom_range(0,1)) ? 1.0 : -1.0;
             prec_factor = 10.0**((dyn_db * rnd_sign) / 20.0);
 
-            // Return: offset
+            // offset
             return eff_input * (prec_factor - 1.0);
         end
     endfunction
 
 
-    // ASSERTIONS (PWR CHECK)
+    // PWR CHECK
 
     always @(vdd) begin
         // max
-        assert (vdd <= SUPPLY_MAX) else
-            $error("[COMPARATOR_RNM] Supply Voltage too HIGH! =%0.3fV (Max: %0.3fV)", vdd, SUPPLY_MAX);
+        assert ((vdd-vss) <= SUPPLY_MAX) else
+            $fatal(0, "[COMPARATOR_RNM] Supply Voltage too HIGH! =%0.3fV (Max: %0.3fV)", vdd, SUPPLY_MAX);
     end
 
     // enable/disable comparator
-    assign cmpr_enabled = (vdd >= SUPPLY_MIN) && (am_complete == 1'b0);
+    assign cmpr_enabled = ((vdd-vss) >= SUPPLY_MIN) && (am_complete == 1'b0);
     // comparator output
     assign am_cmpr_out = cmpr_enabled ? cmpr_out : 1'bx;
 
@@ -105,66 +105,67 @@ module comparator_RNM #(
     always @(negedge am_invert iff(am_short)) begin 
         
         real charge_factor;
-
-        if ($realtime - sample_start_time >= (ACQ_TIME/5)) begin
-            // If held for 10us or more, it is 100% fully settled
-            stored_current <= apply_saturation(in);
-        end else begin
-            // THE PHYSICS ENGINE
-            // Calculate the partial charge based on the exponential curve
-            charge_factor = 1.0 - $exp(-($realtime - sample_start_time) / (ACQ_TIME/5));
-            
-            // Store the partially settled value!
-            stored_current <= apply_saturation(in) * charge_factor;
-            
-            $info("RNM: Sample switch opened early (%0.0f ns). Capacitor reached %0.1f%% charge.", 
-                  ($realtime - sample_start_time), charge_factor * 100.0);
+        if(in > inv_bias) begin
+            if ($realtime - sample_start_time >= (ACQ_TIME/5)) begin
+                // 10us or more, it is 100% fully settled
+                stored_current <= apply_saturation(in);
+            end else begin
+                // Calculate the partial charge 
+                charge_factor = 1.0 - $exp(-($realtime - sample_start_time) / (ACQ_TIME/5));
+                
+                // Store the partially settled value!
+                stored_current <= apply_saturation(in) * charge_factor;
+                
+                $info("RNM: Sample switch opened early (%0.0f ns). Capacitor reached %0.1f%% charge.", 
+                    ($realtime - sample_start_time), charge_factor * 100.0);
+            end
+        end
+        else begin
+            stored_current <= 0.0;
         end
     end
 
     // AUTO-ZERO
     always @(posedge am_short)
     begin
-        cmpr_out <= 1'b1;
-        #HOLD_TIME; // Dummy delay
+        #HOLD_TIME; // delay
+        cmpr_out <= 1'b0; //comparator invalid 
     end
 
-    /*always @(negedge am_short) begin
-     //  offset
-     residual_offset <= calc_offset(in);
-     end*/
-
     // COMPARE
-    always @(negedge am_short/*posedge am_invert*/) begin
+    always @(posedge am_invert iff !am_short) begin // am_short transition should occur prior to the am_invert transition and is guaranteed in the analog logic
 
         real curr_input;
         real abs_stored;
-        residual_offset <= calc_offset(in);
+        real dec_time;
 
-        #DECISION_TIME;
+        if(DECISION_TIME > 0) begin
+            dec_time = (DECISION_TIME/1000) * real'($urandom_range(1, 900));
+            #dec_time;
+        end
 
         curr_input = apply_saturation(in);
         abs_stored = (stored_current < 0) ? -stored_current : stored_current;
 
-        if (abs_stored < BIAS_CURRENT) begin
-            cmpr_out <= 1'b0;
+        if (curr_input < inv_bias) begin // current mirror fail
+            curr_input = 0.0;
         end else begin
-            if ((curr_input - stored_current + residual_offset) > 0)
+            if ((curr_input - stored_current + calc_offset(in)) > 0)
                 cmpr_out <= 1'b1;
             else
                 cmpr_out <= 1'b0;
         end
     end
 
-    // PWR
+    // Current consumption
     always_comb begin
         if (am_invert)
             current_draw = CURRENT_CONSUMPTION;
         else if (am_clk_sample)
-            current_draw = BIAS_CURRENT + 5.0e-9;
+            current_draw = inv_bias + 5.0e-9;
         else
-            current_draw = BIAS_CURRENT;
+            current_draw = inv_bias;
     end
-    assign current_consumption = cmpr_enabled ? current_draw : 0.0;
+    assign idd = cmpr_enabled ? current_draw : 0.0;
 
 endmodule

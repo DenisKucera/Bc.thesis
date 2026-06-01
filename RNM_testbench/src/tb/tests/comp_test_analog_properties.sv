@@ -1,29 +1,38 @@
 /*
  * Project: RNM testbench
- * File: comp_test_digital_control.sv
+ * File: comp_test_analog_properties.sv
  * Author: Denis Kucera
- * Created: 2026-05-20
- * Description: digital control test
+ * Created: 2026-05-30
+ * Description: Test analog properties
  */
 
- /*
-  *  Objective: comparator digital control logic
-  *  
-  *  Sequence: 
-  * 
-  *  Test description: send 10 full valid comparator control cycles
-  *                    randomized (50% correct and 50% wrong full cycles)
-  *                    send 10 partialy correct order cycles
-  *                    send 10 wrong order full cycles
-  *  
-  */
- class comp_test_digital_control extends comp_base_test;
+class comp_test_analog_properties extends comp_base_test;
 
-    `uvm_component_utils(comp_test_digital_control)
+    `uvm_component_utils(comp_test_analog_properties)
+    
+    function new(string name, uvm_component parent);
+        super.new(name, parent);
+    endfunction
 
-  // component constructor
-  function new(string name, uvm_component parent);
-    super.new(name, parent);
-  endfunction : new
+virtual task run_phase(uvm_phase phase);
+    super.run_phase(phase);
+    //uvm_objection obj = phase.get_objection();
+    phase.raise_objection(this);
 
- endclass
+    `uvm_info("TEST", "Running Analog properties test", UVM_LOW)
+
+    // Configure VDD to be noisy
+    m_comp_sequence.cfg_in.w_type    = comp_item::SINE;
+    m_comp_sequence.cfg_in.offset    = 10.0e-6;    // 1.2V baseline
+    m_comp_sequence.cfg_in.amplitude = 2.5e-6;   // 50mV of noise
+    m_comp_sequence.cfg_in.step_ps   = 500;     // Update noise very fast (50ps)
+
+    m_comp_sequence.cfg_vdd.w_type   = comp_item::STATIC;
+    m_comp_sequence.cfg_vdd.offset   = 0.8;
+
+    m_comp_sequence.start(m_env_top.m_comp_env.m_comp_agent.m_comp_sequencer);
+
+    phase.drop_objection(this);
+endtask
+
+endclass

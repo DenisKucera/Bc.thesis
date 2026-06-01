@@ -1,16 +1,12 @@
 /*
  * Project: RNM testbench
- * File: digital_item.sv
+ * File: comp_item.sv
  * Author: Denis Kucera
  * Created: 2026-05-12
- * Description: coparator digital item fields and constraints for digital sequencer
+ * Description: coparator item fields and constraints for sequencer
  */
 
 class comp_item extends uvm_sequence_item;
-
-    // -------------------------------------------------------
-    // 1. DECLARE VARIABLES FIRST
-    // -------------------------------------------------------
 
      // accuracy
     real comp_acc;
@@ -23,18 +19,19 @@ class comp_item extends uvm_sequence_item;
     // analog input bias current
     real comp_bias_curr;
 
+    real comp_sample_time_ns;
+    real comp_rnm_decision_time_ns;
+    real comp_spice_decision_time_ns;
+
     // supply
     real comp_vdd;
     real comp_idd;
 
-    //real wave_amplitude;
-    //real wave_period_ns;
     //fields for sampled analog values
     real in_samples [];
     real bias_samples [];
     real vdd_samples [];
-    //sample time for analog signal generation
-    //real start_time_ns;
+    real vss_samples [];
 
     // timing (realtime)
     rand int unsigned comp_delay_ps;
@@ -95,10 +92,10 @@ class comp_item extends uvm_sequence_item;
     //control knobs for randomization
     rand comp_control_e timing, state_transition;
 
-    wave_config_s cfg_in_curr;
+    wave_config_s cfg_in;
     wave_config_s cfg_bias;
     wave_config_s cfg_vdd;
-
+    wave_config_s cfg_vss;
  
     `uvm_object_utils_begin(comp_item)
         // Note: realtime variables MUST use uvm_field_real
@@ -170,7 +167,7 @@ class comp_item extends uvm_sequence_item;
 
     constraint c_timings {
         (timing == CORRECT) -> {
-            state == SAMPLE  -> comp_delay_ps inside {[0 : 10_000_000]}; // 5-15us
+            state == SAMPLE  -> comp_delay_ps inside {[2_000_000 : 10_000_000]}; // 2-10us
             state == HOLD   -> comp_delay_ps inside {[5_000_000 : 10_000_000]};           // min 300ps
             state == COMPARE -> comp_delay_ps inside {[50_000 : 2_000_000]};         // max 2us
             state == IDLE   -> comp_delay_ps == 50_000_000;                         // 100us
@@ -212,8 +209,8 @@ class comp_item extends uvm_sequence_item;
         s = {s, $sformatf("\n|   Type: %-12s Step: %-7d ps            |", cfg_vdd.w_type.name(), cfg_vdd.step_ps)};
         s = {s, $sformatf("\n|  Offset:  %8.3f V    Amplitude:  %8.3f V   |", cfg_vdd.offset, cfg_vdd.amplitude)};
         s = {s, $sformatf("\n| [INPUT CURRENT]                                  |")};
-        s = {s, $sformatf("\n|   Type: %-12s Step: %-7d ps            |", cfg_in_curr.w_type.name(), cfg_in_curr.step_ps)};
-        s = {s, $sformatf("\n|  Offset:  %8.3f uA   Amplitude:  %8.3f uA  |", cfg_in_curr.offset * 1e6, cfg_in_curr.amplitude * 1e6)};
+        s = {s, $sformatf("\n|   Type: %-12s Step: %-7d ps            |", cfg_in.w_type.name(), cfg_in.step_ps)};
+        s = {s, $sformatf("\n|  Offset:  %8.3f uA   Amplitude:  %8.3f uA  |", cfg_in.offset * 1e6, cfg_in.amplitude * 1e6)};
         s = {s, $sformatf("\n| [BIAS CURRENT]                                   |")};
         s = {s, $sformatf("\n|   Type: %-12s Step: %-7d ps            |", cfg_bias.w_type.name(), cfg_bias.step_ps)};
         s = {s, $sformatf("\n|  Offset:  %8.3f uA   Amplitude:  %8.3f uA  |", cfg_bias.offset * 1e6, cfg_bias.amplitude * 1e6)};

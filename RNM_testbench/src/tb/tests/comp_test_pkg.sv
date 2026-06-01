@@ -10,7 +10,7 @@ import comp_uvc_pkg::*;
 
 // include tests
 `include "comp_base_test.sv"
-`include "comp_sanity_test.sv"
+`include "comp_test_sanity.sv"
 `include "comp_test_analog_properties.sv"
 `include "comp_test_analog_violation.sv"
 `include "comp_test_timing_violation.sv"
