@@ -22,6 +22,10 @@ class comp_item extends uvm_sequence_item;
     real comp_sample_time_ns;
     real comp_rnm_decision_time_ns;
     real comp_spice_decision_time_ns;
+    //PARAMETRIZATION from top level instance
+    int param_acq_time_ps;
+    int param_dec_time_ps;
+    int param_hold_time_ps;
 
     // supply
     real comp_vdd;
@@ -137,7 +141,7 @@ class comp_item extends uvm_sequence_item;
     constraint c_short_to_invert_delay { short_to_invert inside {[100 : 1000]};}
 
     constraint c_state_transition {
-        // Knob 1: Follow the spec
+        // Follow the spec
         (state_transition == CORRECT) -> {
             state == IDLE  -> next_state == SAMPLE;
             state == SAMPLE -> next_state == HOLD;
@@ -146,18 +150,18 @@ class comp_item extends uvm_sequence_item;
             start_state == IDLE;
             next_state != GLITCH;
         }
-        // Knob 2: Spin the wheel (The "Chaos" button)
+        // 
         (state_transition == INCORRECT) -> {
-            // Rule: It MUST NOT be the correct next state
+            // It MUST NOT be the correct next state
             state == IDLE     -> next_state != SAMPLE;
             state == SAMPLE   -> next_state != HOLD;
             state == HOLD     -> next_state != COMPARE;
             state == COMPARE  -> next_state != IDLE;
-            // Rule: Don't jump to GLITCH here (keep GLITCH as a separate knob)
+            // Don't jump to GLITCH here (keep GLITCH as a separate)
             next_state != GLITCH;
             start_state dist {SAMPLE := 1, HOLD := 1, COMPARE := 1, IDLE := 1, GLITCH := 1};
         }
-        // Knob 3: Dedicated Glitch mode
+        // Dedicated Glitch mode
         (state_transition == RANDOM) -> {
             next_state dist {SAMPLE := 1, HOLD := 1, COMPARE := 1, IDLE := 1, GLITCH := 2};
             next_state != state;
@@ -167,23 +171,23 @@ class comp_item extends uvm_sequence_item;
 
     constraint c_timings {
         (timing == CORRECT) -> {
-            state == SAMPLE  -> comp_delay_ps inside {[2_000_000 : 10_000_000]}; // 2-10us
-            state == HOLD   -> comp_delay_ps inside {[5_000_000 : 10_000_000]};           // min 300ps
-            state == COMPARE -> comp_delay_ps inside {[50_000 : 2_000_000]};         // max 2us
-            state == IDLE   -> comp_delay_ps == 50_000_000;                         // 100us
+            state == SAMPLE  -> comp_delay_ps inside {[(param_acq_time_ps/10) : param_acq_time_ps]}; // 2-10us
+            state == HOLD   -> comp_delay_ps inside {[5_000_000 : 10_000_000]};          
+            state == COMPARE -> comp_delay_ps inside {[(param_dec_time_ps/10) : param_dec_time_ps]};        // max 2us
+            state == IDLE   -> comp_delay_ps == 50_000_000;                         // 50us
             state == GLITCH -> comp_delay_ps == 1_000;                          // 1ns
         }
 
-        // Knob 2: Violation (Too short)
+        // Violation (Too short)
         (timing == INCORRECT) -> {
-            state == SAMPLE -> comp_delay_ps inside {[10 : 1_000]};              // Violates ACQ_TIME
-            state == COMPARE -> comp_delay_ps inside {[10 : 1_000]};              // Violates DECISION_TIME
-            state == HOLD -> comp_delay_ps == 10;                              // Violates HOLD_TIME
+            state == SAMPLE -> comp_delay_ps inside {[1_000 : 500_000]};              // Violates ACQ_TIME
+            state == COMPARE -> comp_delay_ps inside {[1_000: 500_000]};              // Violates DECISION_TIME
+            state == HOLD -> comp_delay_ps inside {[1_000: 500_000]};                  // Violates HOLD_TIME
         }
 
-        // Knob 3: Pure Chaos
+        //  Chaos
         (timing == RANDOM) -> {
-            comp_delay_ps inside {[10 : 20_000_000]};                      // Up to 20ms
+            comp_delay_ps inside {[100 : 100_000_000]};                      // Up to 100us
         }
     }
     

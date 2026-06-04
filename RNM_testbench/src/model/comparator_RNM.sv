@@ -4,21 +4,20 @@
  * Author: Denis Kucera
  * Created: 2025-11-30
  * Ver. 2.1 added decision time randomization and fixed current model + fix bugs
- * Description: Base comparator sequence with derived sequences
+ * Description: SystemVerilog Comparator Real Number Model
  */
 
-`timescale 1ns/1ps
-
 module comparator_RNM #(
-        parameter real    MAX_CURRENT           = 50.0e-6,
-        parameter real    MAX_ERR_DB            = 0.25,
-        parameter real    MIN_ERR_DB            = 0.10,
-        parameter time    ACQ_TIME              = 10us,
-        parameter time    DECISION_TIME         = 2us,
-        parameter time    HOLD_TIME             = 300ps,
-        parameter real    CURRENT_CONSUMPTION   = 35.0e-9,
-        parameter real    SUPPLY_MIN            = 0.65,
-        parameter real    SUPPLY_MAX            = 1.0
+        parameter real        MAX_CURRENT           = 50.0e-6,
+        parameter real        MAX_ERR_DB            = 0.25,
+        parameter real        MIN_ERR_DB            = 0.10,
+        parameter realtime    ACQ_TIME              = 10us,
+        parameter realtime    DECISION_TIME         = 2us,
+        parameter realtime    HOLD_TIME             = 300ps,
+        parameter real        CURRENT_CONSUMPTION   = 35.0e-9,
+        parameter real        SUPPLY_MIN            = 0.65,
+        parameter real        SUPPLY_MAX            = 1.0,
+        parameter real        BIAS_CURRENT          = 5.0e-9
     )(
         input  real  vss,
         input  logic am_clk_sample,
@@ -33,9 +32,10 @@ module comparator_RNM #(
     );
     real stored_current  = 0.0;
     real current_draw;
+    real sample_start_time = 0;
+
     logic cmpr_enabled;
     logic cmpr_out;
-    time sample_start_time = 0;
 
     initial cmpr_out = 1'b0;
 
@@ -105,7 +105,7 @@ module comparator_RNM #(
     always @(negedge am_invert iff(am_short)) begin 
         
         real charge_factor;
-        if(in > inv_bias) begin
+        if(in > inv_bias && inv_bias > BIAS_CURRENT) begin
             if ($realtime - sample_start_time >= (ACQ_TIME/5)) begin
                 // 10us or more, it is 100% fully settled
                 stored_current <= apply_saturation(in);
@@ -146,8 +146,8 @@ module comparator_RNM #(
 
         curr_input = apply_saturation(in);
         abs_stored = (stored_current < 0) ? -stored_current : stored_current;
-
-        if (curr_input < inv_bias) begin // current mirror fail
+        // current mirror fail or input current is out of range
+        if (curr_input < inv_bias || inv_bias < BIAS_CURRENT) begin 
             curr_input = 0.0;
         end else begin
             if ((curr_input - stored_current + calc_offset(in)) > 0)
@@ -159,10 +159,8 @@ module comparator_RNM #(
 
     // Current consumption
     always_comb begin
-        if (am_invert)
-            current_draw = CURRENT_CONSUMPTION;
-        else if (am_clk_sample)
-            current_draw = inv_bias + 5.0e-9;
+        if (am_invert && !am_short) //COMPARE phase
+            current_draw = CURRENT_CONSUMPTION + inv_bias;
         else
             current_draw = inv_bias;
     end

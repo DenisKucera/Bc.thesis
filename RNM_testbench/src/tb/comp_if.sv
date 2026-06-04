@@ -6,15 +6,12 @@
  * Description: Interface
  */
 
-//import udn_pkg::*;
-
 interface comp_if ();
 
      `include "uvm_macros.svh"
     import uvm_pkg::*;
   
-    
-    // 1. UVM Variables (Driven by the UVM Driver)
+    // UVM Variables (Driven by the UVM Driver)
     logic am_complete;
     logic am_clk_sample;
     logic am_invert;
@@ -26,23 +23,36 @@ interface comp_if ();
     real  inv_bias;
     real  vdd;
     real  vss;
+    real  idd;
     //main controlling signals
     logic clk;
     logic reset;
 
-    // 1. Create intermediate 'nets' (wires) for the bidirectional SPICE pins
-    wire w_am_clk_sample = am_clk_sample;
-    wire w_am_short      = am_short;
-    wire w_am_invert     = am_invert;
-    wire w_am_complete   = am_complete;
+ `ifndef VERILATOR
+    generate
+        if (tb_top.ENABLE_MS) begin : ms_routing
+            nettype real realnet;
+            realnet w_in;
+            realnet w_am_clk_sample; 
+            realnet w_am_short;
+            realnet w_am_invert;
+            realnet w_am_complete;
+            realnet w_vss;
+            realnet w_vdd;
+            realnet w_inv_bias;
+
+            assign w_am_complete   = am_complete;
+            assign w_am_invert     = am_invert;
+            assign w_am_short      = am_short;
+            assign w_am_clk_sample = am_clk_sample;
+            assign w_in            = in;
+            assign w_vss           = vss;
+            assign w_vdd           = vdd;
+            assign w_inv_bias      = inv_bias; 
+        end
+    endgenerate
+`endif
     
-    // For real numbers, use 'wire real' to satisfy the continuous assignment
-    /*if (tb_top.ENABLE_AMS) begin
-        wreal w_in = in;
-        wreal w_vdd = vdd;
-        wreal w_vss = vss;
-        wreal w_inv_bias = inv_bias;
-    end*/
     typedef enum bit [2:0] {
         IDLE    = 3'b000,
         SAMPLE  = 3'b001,
@@ -64,20 +74,6 @@ interface comp_if ();
     wire      w_cmpr_out_spice; 
     logic     am_cmpr_out_spice;
     assign   am_cmpr_out_spice = w_cmpr_out_spice;
-
-    /*module real_wire_bridge (
-    input  logic [63:0] wire_in,  // 64-bit wire to carry real bits
-    output logic [63:0] wire_out
-    );
-    real my_real_val;
-
-    // Convert bits from the wire into a real number
-    assign my_real_val = $bitsastoreal(wire_in);
-
-    // Convert the real number back to bits to drive a wire
-    assign wire_out = $realtobits(my_real_val + 1.5);
-
-    endmodule */
 
 endinterface
 

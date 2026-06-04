@@ -13,14 +13,12 @@ class comp_sequence extends uvm_sequence#(comp_item);
   // sequencer pointer macro
   `uvm_declare_p_sequencer(comp_sequencer)
 
+  realtime param_max_acq_time;
+  realtime param_max_dec_time; 
+
   //sequence control fields
   int num_compares;
   comp_item::comp_state_e start_state = comp_item::IDLE;
-
-    // AWG Waveform Controls
-  /*   real wave_amplitude = 20.0e-6; // 20uA
-    real wave_period_ns = 50.0;    // 50ns
-    int  analog_step_ps = 100;     // 100ps steps*/
 
     // Waveform Configurations
     comp_item::wave_config_s cfg_in;
@@ -29,7 +27,7 @@ class comp_sequence extends uvm_sequence#(comp_item);
     comp_item::wave_config_s cfg_vss;
 
     comp_item::comp_control_e cfg_state_transition;
-    comp_item::comp_control_e           cfg_timing;
+    comp_item::comp_control_e cfg_timing;
 
     longint seq_timer_ps = 0;
 
@@ -47,12 +45,20 @@ class comp_sequence extends uvm_sequence#(comp_item);
 virtual task body();
         // Create a persistent tracker for the state machine
         comp_item::comp_state_e current_tracker = start_state;
-        //real global_time_ns = 0.0;
+
+        if(!uvm_config_db#(realtime)::get(null, get_sequencer().get_full_name(), "param_max_dec_time", param_max_dec_time))
+            `uvm_fatal("NO_DEC_PARAM_CFG", "Sequence could not find max decision time!")
+            
+        if(!uvm_config_db#(realtime)::get(null, get_sequencer().get_full_name(), "param_max_acq_time", param_max_acq_time))
+            `uvm_fatal("NO_ACQ_PARAM_CFG", "Sequence could not find max sample time!")
 
         repeat(num_compares) begin
             comp_item req = comp_item::type_id::create("req");
 
             start_item(req);
+
+            req.param_dec_time_ps = int'(param_max_dec_time / 1ps);
+            req.param_acq_time_ps = int'(param_max_acq_time / 1ps);
 
             // Update the item's state tracker
             req.state = current_tracker;
@@ -149,4 +155,3 @@ virtual task body();
 
 
 endclass: comp_sequence
-
