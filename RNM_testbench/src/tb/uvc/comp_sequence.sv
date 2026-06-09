@@ -19,6 +19,8 @@ class comp_sequence extends uvm_sequence#(comp_item);
   //sequence control fields
   //number of full comparator cycles
   int num_compares;
+  //enable/disable randomized am_complete generation
+  bit am_complete_en;
   comp_item::comp_state_e start_state = comp_item::IDLE;
 
     // Waveform Configurations
@@ -68,9 +70,11 @@ virtual task body();
             req.cfg_bias      = this.cfg_bias;
             req.cfg_vdd       = this.cfg_vdd;
 
+            // randomized sequence PROTOCOL ---
             if (!req.randomize() with {
                 req.state_transition == cfg_state_transition;
                 req.timing           == cfg_timing;
+                req.am_complete_en   == am_complete_en;
             }) begin
                 `uvm_fatal(get_type_name(), "Failed to randomize comp_item.")
             end
@@ -97,7 +101,7 @@ virtual task body();
             analog_samples = new[num_samples]; 
             
             for (int i = 0; i < num_samples; i++) begin
-                // Sequence global time tracker!
+                // Use the Sequence's global time tracker!
                 longint time_in_ps = seq_timer_ps + (i * cfg.step_ps);
                 analog_samples[i] = calculate_waveform(time_in_ps, cfg); 
             end

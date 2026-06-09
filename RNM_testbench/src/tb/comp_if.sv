@@ -27,7 +27,6 @@ interface comp_if (/*parameter bit ENABLE_MS = 1*/);
     //main controlling signals
     logic clk;
     logic reset;
-    
 
     typedef enum bit [2:0] {
         IDLE    = 3'b000,

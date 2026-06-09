@@ -134,7 +134,7 @@ module comparator_RNM #(
     end
 
     // COMPARE
-    always @(posedge am_invert iff !am_short) begin // am_short transition should occur prior to the am_invert transition and is guaranteed in the analog logic
+    always @(posedge am_invert iff !am_short) begin 
 
         real curr_input;
         real abs_stored;

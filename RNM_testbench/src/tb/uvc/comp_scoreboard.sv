@@ -27,6 +27,7 @@ class comp_scoreboard extends uvm_scoreboard;
     int fail_count = 0;
 
     // PREDICTOR LOGIC
+    // !!! TODO !!!
     /*virtual function void write(comp_item item);
         logic out_expected;
         bit rnm_match   = (item.comp_out === out_expected);
@@ -110,12 +111,11 @@ class comp_scoreboard extends uvm_scoreboard;
   function real calculate_db_diff(real stored_i, real compare_i);
       real ratio;
       real db_diff;
-      // Safety catch: Prevent divide-by-zero or math domain errors
+
       if (stored_i <= 1e-12 || compare_i <= 1e-12) return 0.0; 
       
       ratio = compare_i / stored_i;
       
-      // Calculate Decibels using SystemVerilog's built-in log10
       db_diff = 10.0 * $log10(ratio);
       //return absolute value
       return (db_diff < 0.0) ? -db_diff : db_diff;

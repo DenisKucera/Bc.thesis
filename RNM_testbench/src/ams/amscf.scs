@@ -2,15 +2,22 @@
 simulator lang=spectre
 
 include "comparator.scs"
-include "acf.scs"
+//include "acf.scs"
+
+// 1. Analog solver options (Standard convergence settings)
+simulatorOptions options reltol=1e-3 vabstol=1e-6 iabstol=1e-12
+
+// 2. Transient Analysis setup
+// Defines the max run time for the analog solver. Set this to match your SV testbench!
+save tb_top.genblk1.dut_spice_inst.dut_spice.V_probe_bias:p
+save tb_top.genblk1.dut_spice_inst.dut_spice.V_probe_in:p
+
+my_tran_sim tran stop=4m step=1ns
 
 // The AMSD Bridge Block
 amsd {
-    ie vsup=0.65
+    ie vsup=1.0
     portmap subckt=comparator autobus=yes
-    
     // Use the cell-based approach but without the braces
     config inst=tb_top.genblk1.dut_spice_inst.dut_spice use=spice
-    //config inst=tb_top.dut_spice use=spice
-    //config inst=tb_top.dut_spice use=spice
 }

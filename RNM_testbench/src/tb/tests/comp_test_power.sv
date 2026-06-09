@@ -21,14 +21,46 @@ virtual task run_phase(uvm_phase phase);
 
     `uvm_info("TEST", "Running Supply-Power Test", UVM_LOW)
 
-    // Configure VDD to be noisy
-    m_comp_sequence.cfg_in.w_type    = comp_item::SINE;
-    m_comp_sequence.cfg_in.offset    = 10.0e-6;    // 1.2V baseline
-    m_comp_sequence.cfg_in.amplitude = 2.5e-6;   // 50mV of noise
-    m_comp_sequence.cfg_in.step_ps   = 500;     // Update noise very fast (50ps)
+    // Correct sequence setup 
+    m_comp_sequence.num_compares         = 100;
+    m_comp_sequence.start_state          = comp_item::IDLE;
+    m_comp_sequence.cfg_state_transition = comp_item::CORRECT;
+    m_comp_sequence.cfg_timing           = comp_item::CORRECT;
 
-    m_comp_sequence.cfg_vdd.w_type   = comp_item::STATIC;
-    m_comp_sequence.cfg_vdd.offset   = 0.8;
+    // Set changing current (input stimulus for comparator)
+    m_comp_sequence.cfg_in.w_type    = comp_item::SINE;
+    m_comp_sequence.cfg_in.offset    = 10.0e-6;    // 
+    m_comp_sequence.cfg_in.amplitude = 2.5e-6;   // 
+    m_comp_sequence.cfg_in.period_ps = 1_000_000;
+    m_comp_sequence.cfg_in.step_ps   = 1_000;     // 
+    //correct bias current
+    m_comp_sequence.cfg_bias.w_type = comp_item::STATIC;
+    m_comp_sequence.cfg_bias.offset = 6.0e-9;
+
+    //PWR VIOLATION high-voltage
+    m_comp_sequence.cfg_vdd.w_type     = comp_item::PULSE_POS;
+    m_comp_sequence.cfg_vdd.offset     = 1.0;
+    m_comp_sequence.cfg_vdd.amplitude  = 0.2;
+    m_comp_sequence.cfg_vdd.period_ps = 1_000_000;
+    m_comp_sequence.cfg_vdd.step_ps   = 1_000;     // 
+
+    m_comp_sequence.start(m_env_top.m_comp_env.m_comp_agent.m_comp_sequencer);
+
+    //PWR VIOLATION low-voltage
+    m_comp_sequence.cfg_vdd.w_type     = comp_item::PULSE_NEG;
+    m_comp_sequence.cfg_vdd.offset     = 0.65;
+    m_comp_sequence.cfg_vdd.amplitude  = 0.2;
+    m_comp_sequence.cfg_vdd.period_ps   = 1_000_000;
+    m_comp_sequence.cfg_vdd.step_ps     = 1_000;     // 
+
+    m_comp_sequence.start(m_env_top.m_comp_env.m_comp_agent.m_comp_sequencer);
+
+    //AM_COMPLETE test
+    m_comp_sequence.cfg_vdd.w_type     = comp_item::STATIC;
+    m_comp_sequence.cfg_vdd.offset     = 0.85;
+    m_comp_sequence.cfg_vdd.step_ps     = 1_000;  
+
+    m_comp_sequence.am_complete_en = 1;
 
     m_comp_sequence.start(m_env_top.m_comp_env.m_comp_agent.m_comp_sequencer);
 

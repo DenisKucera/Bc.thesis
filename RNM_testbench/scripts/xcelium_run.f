@@ -25,7 +25,7 @@ $WORK_ROOT/RNM_testbench/src/model/comparator_RNM.sv
 //top module
 $WORK_ROOT/RNM_testbench/src/tb/tb_top.sv
 
-+UVM_TESTNAME=comp_test_sanity
++UVM_TESTNAME=comp_test_sequence_violation
 +UVM_VERBOSITY=UVM_LOW      // Start LOW to see your clean Scoreboard tables
 -defparam tb_top.ENABLE_MS=0
 -defparam tb_top.TEST_DUT=0

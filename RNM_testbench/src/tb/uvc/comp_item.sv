@@ -37,16 +37,19 @@ class comp_item extends uvm_sequence_item;
     real vdd_samples [];
     real vss_samples [];
 
+    //am_complete async driving
+    bit      am_complete_en=0; //disabled by default
+    rand int am_complete_delay_ps;
+    rand int am_complete_duration_ps;
+
     // timing (realtime)
     rand int unsigned comp_delay_ps;
 
     rand int unsigned invert_to_sample;
     rand int unsigned short_to_invert;
 
-    rand logic comp_am_short;
-    rand logic comp_am_invert;
-    rand logic comp_am_clk_sample;
-    rand logic comp_am_complete;
+    // [3]=clk_sample, [2]=invert, [1]=short, [0]=complete
+    rand logic [3:0] glitch_vector;
 
     // variables for monitor (Not randomized)
     logic comp_out;
@@ -89,7 +92,6 @@ class comp_item extends uvm_sequence_item;
 
     //holding current comparator state
     comp_state_e state;
-    comp_state_e monitor_state;
 
     rand comp_state_e start_state;
     //randomized next state
@@ -113,18 +115,16 @@ class comp_item extends uvm_sequence_item;
         `uvm_field_enum(comp_control_e, state_transition, UVM_ALL_ON)
 
         `uvm_field_int(comp_delay_ps, UVM_ALL_ON)
-        `uvm_field_int(comp_am_short, UVM_ALL_ON)
-        `uvm_field_int(comp_am_invert, UVM_ALL_ON)
-        `uvm_field_int(comp_am_clk_sample, UVM_ALL_ON)
-        `uvm_field_int(comp_am_complete, UVM_ALL_ON)
+        `uvm_field_int(glitch_vector, UVM_ALL_ON | UVM_BIN)
 
-               // Analog Values
+        `uvm_field_int(am_complete_delay_ps, UVM_ALL_ON)
+        `uvm_field_int(am_complete_duration_ps,   UVM_ALL_ON)
+        // Analog Values
         `uvm_field_real(comp_acc, UVM_ALL_ON)
         `uvm_field_real(comp_in_curr, UVM_ALL_ON)
         `uvm_field_real(comp_bias_curr, UVM_ALL_ON)
         `uvm_field_real(comp_vdd, UVM_ALL_ON)
         `uvm_field_real(comp_idd, UVM_ALL_ON)
-
         // Monitor outputs
         `uvm_field_int(comp_out, UVM_ALL_ON)
         `uvm_field_int(comp_analog_out, UVM_ALL_ON)
@@ -135,14 +135,32 @@ class comp_item extends uvm_sequence_item;
         super.new(name);
     endfunction : new
 
+
     constraint c_default_state_transition { state_transition dist {RANDOM := 1, INCORRECT := 1, CORRECT := 4}; }
     constraint c_default_timings { timing dist {RANDOM := 1, INCORRECT := 1, CORRECT := 4};}
 
-    constraint c_invert_to_sample_delay { invert_to_sample inside {[100 : 1000]};}
-    constraint c_short_to_invert_delay { short_to_invert inside {[100 : 1000]};}
+    constraint c_invert_to_sample_delay { invert_to_sample inside {[1000 : 10_000]};}
+    constraint c_short_to_invert_delay { short_to_invert inside {[1000 : 10_000]};}
+
+    constraint c_glitch_pins {
+        if (state == GLITCH) {
+            glitch_vector dist {
+                4'b0000 := 2,  
+                4'b1111 := 2,  
+                4'b1000 := 1, 4'b0100 := 1, 4'b0010 := 1, 4'b0001 := 1,
+                [4'b0000 : 4'b1111] :/ 8 
+            };
+        } else {
+            glitch_vector == 4'b0000;
+        }
+    }
+
+    constraint c_am_complete {
+        am_complete_delay_ps inside {[1000 : 20_000_000]}; 
+        am_complete_duration_ps inside {[1000 : 50_000]}; 
+    }
 
     constraint c_state_transition {
-        // Follow the spec
         (state_transition == CORRECT) -> {
             state == IDLE  -> next_state == SAMPLE;
             state == SAMPLE -> next_state == HOLD;
@@ -153,14 +171,14 @@ class comp_item extends uvm_sequence_item;
         }
         // 
         (state_transition == INCORRECT) -> {
-            // It MUST NOT be the correct next state
+            // incorrect next state
             state == IDLE     -> next_state != SAMPLE;
             state == SAMPLE   -> next_state != HOLD;
             state == HOLD     -> next_state != COMPARE;
             state == COMPARE  -> next_state != IDLE;
-            // Don't jump to GLITCH here (keep GLITCH as a separate)
+            // keeping GLITCH separate
             next_state != GLITCH;
-            start_state dist {SAMPLE := 1, HOLD := 1, COMPARE := 1, IDLE := 1, GLITCH := 1};
+            start_state dist {SAMPLE := 1, HOLD := 1, COMPARE := 1, IDLE := 1};
         }
         // Dedicated Glitch mode
         (state_transition == RANDOM) -> {
@@ -172,11 +190,11 @@ class comp_item extends uvm_sequence_item;
 
     constraint c_timings {
         (timing == CORRECT) -> {
-            state == SAMPLE  -> comp_delay_ps inside {[(param_acq_time_ps/10) : param_acq_time_ps]}; // 2-10us
+            state == SAMPLE  -> comp_delay_ps inside {[(param_acq_time_ps/2) : param_acq_time_ps]}; // 2-10us
             state == HOLD   -> comp_delay_ps inside {[5_000_000 : 10_000_000]};          
-            state == COMPARE -> comp_delay_ps inside {[(param_dec_time_ps/10) : param_dec_time_ps]};        // max 2us
-            state == IDLE   -> comp_delay_ps == 50_000_000;                         // 50us
-            state == GLITCH -> comp_delay_ps == 1_000;                          // 1ns
+            state == COMPARE -> comp_delay_ps inside {[(param_dec_time_ps/2) : param_dec_time_ps]};        // max 2us
+            state == IDLE   -> comp_delay_ps == 100_000_000;                         // 50us
+            state == GLITCH -> comp_delay_ps == 100_000;                          // 100ns
         }
 
         // Violation (Too short)
@@ -186,7 +204,6 @@ class comp_item extends uvm_sequence_item;
             state == HOLD -> comp_delay_ps inside {[1_000: 500_000]};                  // Violates HOLD_TIME
         }
 
-        //  Chaos
         (timing == RANDOM) -> {
             comp_delay_ps inside {[100 : 100_000_000]};                      // Up to 100us
         }

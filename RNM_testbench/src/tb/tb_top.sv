@@ -5,15 +5,17 @@
  * Created: 2026-05-12
  * Description: UVM testbench
  */
-
-
-module tb_top;
+module tb_top(in, vss, vdd, inv_bias);
+    output var real in;
+    output var real vss;
+    output var real vdd;
+    output var real inv_bias;
     //RNM and TB parametrization (values can be overwritten, RNM params overide)
     parameter real        MAX_CURRENT           = 50.0e-6;
     parameter real        MAX_ERR_DB            = 0.25;
     parameter real        MIN_ERR_DB            = 0.10;
-    parameter realtime    ACQ_TIME              = 10us;
-    parameter realtime    DECISION_TIME         = 2us;
+    parameter realtime    ACQ_TIME              = 20us;
+    parameter realtime    DECISION_TIME         = 10us;
     parameter realtime    HOLD_TIME             = 300ps;
     parameter real        CURRENT_CONSUMPTION   = 35.0e-9;
     parameter real        SUPPLY_MIN            = 0.65;
@@ -48,10 +50,10 @@ module tb_top;
         wire w_am_short;
         wire w_am_invert;
         wire w_am_complete;
-        (* discipline = "electrical" *) wreal w_in;
-        (* discipline = "electrical" *) wreal w_vss;
-        (* discipline = "electrical" *) wreal w_vdd;
-        (* discipline = "electrical" *) wreal w_inv_bias;
+        (* discipline = "electrical" *) wreal1driver w_in;
+        (* discipline = "electrical" *) wreal1driver w_vss;
+        (* discipline = "electrical" *) wreal1driver w_vdd;
+        (* discipline = "electrical" *) wreal1driver w_inv_bias;
        
         realnet rn_am_clk_sample;
         realnet rn_am_short;        
@@ -62,10 +64,11 @@ module tb_top;
         assign rn_am_invert     = vif.am_invert;
         assign rn_am_short      = vif.am_short;
         assign rn_am_clk_sample = vif.am_clk_sample;
-        assign w_in            = vif.in;
-        assign w_vss           = vif.vss;
-        assign w_vdd           = vif.vdd;
-        assign w_inv_bias      = vif.inv_bias;
+
+        assign w_vdd = 1;
+        assign w_in = (vif.in*10e4);
+        assign w_vss = 0.0;
+        assign w_inv_bias = (vif.inv_bias*10e6);
 
         assign w_am_clk_sample = rn_am_clk_sample;
         assign w_am_short = rn_am_short;
@@ -122,6 +125,8 @@ module tb_top;
         );
         end: dut_spice_inst
     end
+
+    
 
     // ADD THIS BLOCK TO ENABLE WAVEFORM DUMPING
     initial begin

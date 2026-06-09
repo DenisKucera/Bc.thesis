@@ -59,8 +59,23 @@ ends u4428_afe_tgateHVT
 // The port names here match your SystemVerilog module perfectly.
 subckt comparator am_clk_sample am_short am_invert in inv_bias am_cmpr_out am_complete vdd vss
 
-    //G_bias (vdd bias_internal inv_bias vss) vccs gm=1.0
-    G_bias (bias_internal vss inv_bias vss) vccs gm=1.0
+    G_bias (vdd bias_pre_probe inv_bias 0) vccs gm=1e-7
+    G_in   (vdd in_pre_probe in 0) vccs gm=1e-7
+
+    V_probe_bias (bias_pre_probe bias_internal) vsource dc=0
+    V_probe_in   (in_pre_probe in_internal) vsource dc=0
+
+    //RC filtr am_clk_sample
+    R_filter_sample (am_clk_sample am_clk_sample_filtered) resistor r=1K
+    C_filter_sample (am_clk_sample_filtered vss) capacitor c=100f
+
+    //RC filtr am_invert
+    R_filter_invert (am_invert am_invert_filtered) resistor r=1K
+    C_filter_invert (am_invert_filtered vss) capacitor c=100f
+
+    //RC filtr am_short
+    R_filter_short (am_short am_short_filtered) resistor r=1K
+    C_filter_short (am_short_filtered vss) capacitor c=100f
 
     I74 (net110 net109 vdd vss) u4428_inv_hvt
     I63 (c2 net1 vdd vss) u4428_inv_hvt
@@ -74,20 +89,20 @@ subckt comparator am_clk_sample am_short am_invert in inv_bias am_cmpr_out am_co
     NM0 (c1 net115 net45 vss) n_11_lprvt m=1 mf=1 w=400n l=120n nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
     NM4 (c2 c1 net67 vss) n_11_lprvt m=1 mf=1 w=200n l=50n nf=1 ad=26f as=26f pd=660n ps=660n sa=130n sb=130n sd=0 sca=178.571 scb=34.6615m scc=14.4428m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
     NM5 (net45 net115 vss vss) n_11_lprvt m=1 mf=1 w=400n l=120n nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    PM0 (net114 in net3 vdd) p_11_lprvt m=5 mf=5 w=4.25u l=400n nf=1 ad=552.5f as=552.5f pd=8.76u ps=8.76u sa=130n sb=130n sd=0 sca=11.5473 scb=4.41623m scc=951.52u mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    PM1 (net2 in vdd vdd) p_11_lprvt m=3 mf=3 w=4.25u l=400n nf=1 ad=552.5f as=552.5f pd=8.76u ps=8.76u sa=130n sb=130n sd=0 sca=11.5473 scb=4.41623m scc=951.52u mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM0 (net114 in_internal net3 vdd) p_11_lprvt m=5 mf=5 w=4.25u l=400n nf=1 ad=552.5f as=552.5f pd=8.76u ps=8.76u sa=130n sb=130n sd=0 sca=11.5473 scb=4.41623m scc=951.52u mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM1 (net2 in_internal vdd vdd) p_11_lprvt m=3 mf=3 w=4.25u l=400n nf=1 ad=552.5f as=552.5f pd=8.76u ps=8.76u sa=130n sb=130n sd=0 sca=11.5473 scb=4.41623m scc=951.52u mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
     PM8 (c1 net115 net116 vdd) p_11_lprvt m=1 mf=1 w=400n l=120n nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
     NM1 (net45 c2 vss vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
     NM2 (net67 inv_onb vss vss) n_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    PM2 (net116 inv_bias vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    PM3 (net90 inv_bias vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    PM4 (net117 inv_bias vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    PM5 (inv_bias inv_bias net117 vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM2 (net116 bias_internal vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM3 (net90 bias_internal vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM4 (net117 bias_internal vdd vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM5 (bias_internal bias_internal net117 vdd) p_11_lphvt m=1 mf=1 w=400n l=2.5u nf=1 ad=52f as=52f pd=1.06u ps=1.06u sa=130n sb=130n sd=0 sca=104.167 scb=31.5004m scc=9.51325m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
     PM6 (c2 inv_onb vdd vdd) p_11_lphvt m=1 mf=1 w=120n l=60n nf=1 ad=15.6f as=15.6f pd=500n ps=500n sa=130n sb=130n sd=0 sca=250 scb=33.7815m scc=16.7828m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
     PM7 (c2 c1 net90 vdd) p_11_lphvt m=1 mf=1 w=200n l=50n nf=1 ad=26f as=26f pd=660n ps=660n sa=130n sb=130n sd=0 sca=178.571 scb=34.6615m scc=14.4428m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    I68 (am_invert net109 net4 vdd vss) u4428_nand_hvt
+    I68 (am_invert_filtered net109 net4 vdd vss) u4428_nand_hvt
     I3 (net4 net8 in_on vdd vss) u4428_nor_hvt
-    I5 (am_clk_sample net7 net8 vdd vss) u4428_nor_hvt
+    I5 (am_clk_sample_filtered net7 net8 vdd vss) u4428_nor_hvt
     I60 (net119 fsintb_d vdd vss) u4428_inv_svt
     I65 (fsintb_d fsint_d vdd vss) u4428_inv_svt
     I70 (in_on in_onb vdd vss) u4428_inv_svt
@@ -96,9 +111,9 @@ subckt comparator am_clk_sample am_short am_invert in inv_bias am_cmpr_out am_co
     NM8 (net12 vsample net5 vss) n_elvt m=1 mf=1 w=3u l=80n nf=3 ad=270f as=270f pd=4.54u ps=4.54u sa=130n sb=130n sd=140n sca=46.2963 scb=18.1908m scc=4.04276m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
     NM7 (net5 vsample vss vss) n_25ud18_lp m=1 mf=1 w=10u l=320n nf=8 ad=1.1p as=1.25p pd=11.76u ps=14.5u sa=170n sb=170n sd=220n sca=12.3686 scb=11.0986m scc=1.41825m mis_flag=1 rdscon_flag=1 cctg_flag=1
     NM3 (vss vss vss vss) n_25ud18_lp m=2 mf=2 w=1.25u l=320n nf=1 ad=212.5f as=212.5f pd=2.84u ps=2.84u sa=170n sb=170n sd=0 sca=12.3686 scb=11.0986m scc=1.41825m mis_flag=1 rdscon_flag=1 cctg_flag=1
-    I6 (am_clk_sample am_invert vss vdd vdd vss net110) SVH_NR2_L50_1
-    I7 (am_complete am_short vss vdd vdd vss inv_onb) SVH_NR2_L50_1
-    I8 (am_clk_sample vss vdd vdd vss net9) SVH_INV_L50_1
+    I6 (am_clk_sample_filtered am_invert_filtered vss vdd vdd vss net110) SVH_NR2_L50_1
+    I7 (am_complete am_short_filtered vss vdd vdd vss inv_onb) SVH_NR2_L50_1
+    I8 (am_clk_sample_filtered vss vdd vdd vss net9) SVH_INV_L50_1
     
     I10 (net1 vss vdd vdd vss am_cmpr_out) SVH_INV_L50_1
     
@@ -106,7 +121,7 @@ subckt comparator am_clk_sample am_short am_invert in inv_bias am_cmpr_out am_co
     I58 (net115 inv_on inv_onb c1 vdd vss) u4428_afe_tgateHVT
     I0 (net12 in_on in_onb net118 vdd vss) u4428_afe_tgateHVT
     PM11 (vdd vdd vdd vdd) p_elvt m=2 mf=2 w=4u l=50n nf=1 ad=520f as=520f pd=8.26u ps=8.26u sa=130n sb=130n sd=0 sca=12.2549 scb=4.69224m scc=1.01099m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    PM9 (net12 in net114 vdd) p_elvt m=2 mf=2 w=20u l=50n nf=5 ad=1.64p as=1.64p pd=24.82u ps=24.82u sa=130n sb=130n sd=140n sca=12.2549 scb=4.69224m scc=1.01099m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
-    PM10 (in in net2 vdd) p_elvt m=2 mf=2 w=12u l=50n nf=3 ad=1.08p as=1.08p pd=16.54u ps=16.54u sa=130n sb=130n sd=140n sca=12.2549 scb=4.69224m scc=1.01099m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM9 (net12 in_internal net114 vdd) p_elvt m=2 mf=2 w=20u l=50n nf=5 ad=1.64p as=1.64p pd=24.82u ps=24.82u sa=130n sb=130n sd=140n sca=12.2549 scb=4.69224m scc=1.01099m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
+    PM10 (in_internal in_internal net2 vdd) p_elvt m=2 mf=2 w=12u l=50n nf=3 ad=1.08p as=1.08p pd=16.54u ps=16.54u sa=130n sb=130n sd=140n sca=12.2549 scb=4.69224m scc=1.01099m mis_flag=1 rdscon_flag=1 cctg_flag=1 rgate_flag=1
 
 ends comparator

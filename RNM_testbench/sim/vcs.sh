@@ -17,6 +17,7 @@ done
 vcs -sverilog \
     -ntb_opts uvm \
     -timescale=1ns/1ps \
+    -full64 \
     -kdb \
     -debug_access+all \
     -f /work/dku/RNM_testbench/scripts/vcs_run.f \
@@ -27,11 +28,9 @@ vcs -sverilog \
     -l $SIM_DIR/vcs_compile.log \
     "$VCS_ARGS"
 
-# Step 2: Check if compilation succeeded
 if [ $? -eq 0 ]; then
     echo "Compilation Successful. Starting Simulation..."
     
-    # Základní příkaz pro spuštění
     SIM_CMD="$SIM_DIR/simv +UVM_TESTNAME=comp_test_sanity -l $SIM_DIR/vcs_sim.log"
     
     if [ $RUN_GUI -eq 1 ]; then

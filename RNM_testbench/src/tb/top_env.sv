@@ -23,7 +23,6 @@ class top_env extends uvm_env;
     super.build_phase(phase);
     //create another layer comp UVC env
     m_comp_env = comp_env::type_id::create("m_comp_env", this);
-    //m_env_cfg = top_env_cfg::type_id::create("m_env_cfg",this);
     //in case of other UVC's 
   endfunction : build_phase
 
