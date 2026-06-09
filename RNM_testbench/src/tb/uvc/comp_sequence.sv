@@ -17,6 +17,7 @@ class comp_sequence extends uvm_sequence#(comp_item);
   realtime param_max_dec_time; 
 
   //sequence control fields
+  //number of full comparator cycles
   int num_compares;
   comp_item::comp_state_e start_state = comp_item::IDLE;
 
@@ -67,7 +68,6 @@ virtual task body();
             req.cfg_bias      = this.cfg_bias;
             req.cfg_vdd       = this.cfg_vdd;
 
-            // --- B. RANDOMIZE DIGITAL PROTOCOL ---
             if (!req.randomize() with {
                 req.state_transition == cfg_state_transition;
                 req.timing           == cfg_timing;
@@ -97,7 +97,7 @@ virtual task body();
             analog_samples = new[num_samples]; 
             
             for (int i = 0; i < num_samples; i++) begin
-                // Use the Sequence's global time tracker!
+                // Sequence global time tracker!
                 longint time_in_ps = seq_timer_ps + (i * cfg.step_ps);
                 analog_samples[i] = calculate_waveform(time_in_ps, cfg); 
             end

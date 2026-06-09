@@ -21,13 +21,13 @@ $WORK_ROOT/RNM_testbench/src/tb/test_dut.sv
 //RNM model
 $WORK_ROOT/RNM_testbench/src/model/comparator_RNM.sv
 //analog comparator netlist
-$WORK_ROOT/RNM_testbench/src/ams/amscf.scs
+#$WORK_ROOT/RNM_testbench/src/ams/amscf.scs
 //top module
 $WORK_ROOT/RNM_testbench/src/tb/tb_top.sv
 
-+UVM_TESTNAME=comp_base_test
++UVM_TESTNAME=comp_test_sanity
 +UVM_VERBOSITY=UVM_LOW      // Start LOW to see your clean Scoreboard tables
--defparam tb_top.ENABLE_MS=1
+-defparam tb_top.ENABLE_MS=0
 -defparam tb_top.TEST_DUT=0
 
 // Waveform access (Required for SimVision/shm)

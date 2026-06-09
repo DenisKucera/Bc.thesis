@@ -6,7 +6,7 @@
  * Description: Interface
  */
 
-interface comp_if ();
+interface comp_if (/*parameter bit ENABLE_MS = 1*/);
 
      `include "uvm_macros.svh"
     import uvm_pkg::*;
@@ -27,32 +27,8 @@ interface comp_if ();
     //main controlling signals
     logic clk;
     logic reset;
-
- `ifndef VERILATOR
-    generate
-        if (tb_top.ENABLE_MS) begin : ms_routing
-            nettype real realnet;
-            realnet w_in;
-            realnet w_am_clk_sample; 
-            realnet w_am_short;
-            realnet w_am_invert;
-            realnet w_am_complete;
-            realnet w_vss;
-            realnet w_vdd;
-            realnet w_inv_bias;
-
-            assign w_am_complete   = am_complete;
-            assign w_am_invert     = am_invert;
-            assign w_am_short      = am_short;
-            assign w_am_clk_sample = am_clk_sample;
-            assign w_in            = in;
-            assign w_vss           = vss;
-            assign w_vdd           = vdd;
-            assign w_inv_bias      = inv_bias; 
-        end
-    endgenerate
-`endif
     
+
     typedef enum bit [2:0] {
         IDLE    = 3'b000,
         SAMPLE  = 3'b001,
@@ -61,10 +37,15 @@ interface comp_if ();
         GLITCH  = 3'b100
     } debug_state_e;
 
+    //bit [2:0] debug_state;
     debug_state_e debug_state;
 
     // 2. Create a string variable to hold the name
     string state_name;
+
+    function void set_debug_state(bit [2:0] val);
+        $cast(debug_state, val);
+    endfunction
 
     // 3. Automatically update the string whenever the state changes
 

@@ -59,6 +59,9 @@ ends u4428_afe_tgateHVT
 // The port names here match your SystemVerilog module perfectly.
 subckt comparator am_clk_sample am_short am_invert in inv_bias am_cmpr_out am_complete vdd vss
 
+    //G_bias (vdd bias_internal inv_bias vss) vccs gm=1.0
+    G_bias (bias_internal vss inv_bias vss) vccs gm=1.0
+
     I74 (net110 net109 vdd vss) u4428_inv_hvt
     I63 (c2 net1 vdd vss) u4428_inv_hvt
     I61 (net9 net119 vdd vss) u4428_inv_hvt

@@ -38,32 +38,27 @@ class comp_driver extends uvm_driver #(comp_item);
     init_signals();
 
     forever begin
-      // Get new item from the sequencer
       seq_item_port.get_next_item(req);
 
-      // We wrap the fork inside a 'begin...end' block so 'disable fork' 
-      // only kills these specific child threads, not the whole run_phase!
       fork begin : sample_threads
           fork
-            // Master (Digital) control
+            // (Digital) control
             begin
                 comparator_control(req);
             end
             
             // Analog threads
-            begin drive_analog(req.in_samples, req.cfg_in.step_ps, req.cfg_in); end
-            begin drive_analog(req.vdd_samples, req.cfg_vdd.step_ps, req.cfg_vdd); end
-            begin drive_analog(req.bias_samples, req.cfg_bias.step_ps, req.cfg_bias); end
+            begin drive_in_pin(req.in_samples, req.cfg_in.step_ps/*, req.cfg_in*/); end
+            begin drive_vdd_pin(req.vdd_samples, req.cfg_vdd.step_ps/*, req.cfg_vdd*/); end
+            begin drive_bias_pin(req.bias_samples, req.cfg_bias.step_ps/*, req.cfg_bias*/); end
           join_any // As soon as ANY thread finishes, move on
 
-          // Aggressively kill the remaining threads (the analog ones) 
-          // to guarantee perfect digital synchronization
+          //  kill the remaining threads (the analog ones) 
+          //  digital synchronization
           disable fork; 
       end : sample_threads join
 
-      // End transaction recording
       end_tr(req);
-      // Communicate item done to the sequencer
       seq_item_port.item_done();
     end
   endtask : run_phase
@@ -97,10 +92,10 @@ class comp_driver extends uvm_driver #(comp_item);
   endtask
 
   task comparator_control(comp_item req);
-    // 1. Drive the signals for the current state
-    $cast(m_vif.debug_state, req.state);
-    
-  //if(counter == stored_time) begin
+
+    m_vif.set_debug_state(req.state);
+    `uvm_info("DRV_DEBUG", $sformatf("Driver dostal z UVM sekvence stav: %s", req.state.name()), UVM_NONE)
+    //if(counter == stored_time) begin
     case(req.state)
       comp_item::SAMPLE:  drive_sample_signals(/*req*/);
       comp_item::HOLD:    drive_hold_signals(req);
@@ -116,20 +111,25 @@ class comp_driver extends uvm_driver #(comp_item);
     //end
   endtask
 
-  task drive_analog(real number_of_samples [], int time_step_ps, comp_item::wave_config_s drive_pin);
-     foreach (number_of_samples[i]) begin
-            
-            // Drive the analog pin
-            case(drive_pin)
-              req.cfg_in: m_vif.in = number_of_samples[i];
-              req.cfg_bias: m_vif.inv_bias = number_of_samples[i];
-              req.cfg_vdd: m_vif.vdd = number_of_samples[i];
-              //VSS: m_vif.vss = number_of_samples[i];
-            endcase
-            
-            // Sleep for the tiny analog step
-            #(time_step_ps * 1ps);
-        end
+  task drive_in_pin(real number_of_samples [], int time_step_ps);
+    foreach (number_of_samples[i]) begin
+        m_vif.in = number_of_samples[i];
+        #(time_step_ps * 1ps);
+    end
+  endtask
+
+task drive_vdd_pin(real number_of_samples [], int time_step_ps);
+    foreach (number_of_samples[i]) begin
+        m_vif.vdd = number_of_samples[i];
+        #(time_step_ps * 1ps);
+    end
+  endtask
+
+  task drive_bias_pin(real number_of_samples [], int time_step_ps);
+    foreach (number_of_samples[i]) begin
+        m_vif.inv_bias = number_of_samples[i];
+        #(time_step_ps * 1ps);
+    end
   endtask
 
   // UVM report_phase

@@ -123,6 +123,7 @@ module comparator_RNM #(
         else begin
             stored_current <= 0.0;
         end
+        sample_start_time <= 0.0;
     end
 
     // AUTO-ZERO

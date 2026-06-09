@@ -12,7 +12,7 @@ class comp_monitor extends uvm_monitor;
   comp_item m_comp_item;
 
   // analysis port
-  uvm_analysis_port#(comp_item) collected_item;
+  uvm_analysis_port#(comp_item) m_collected_item;
 
   virtual interface comp_if m_vif;
 
@@ -25,7 +25,7 @@ class comp_monitor extends uvm_monitor;
   // component constructor - required syntax for UVM automation and utilities
   function new (string name, uvm_component parent);
     super.new(name, parent);
-    collected_item = new("collected_item",this);
+    m_collected_item = new("m_collected_item",this);
   endfunction : new
 
   
@@ -40,10 +40,13 @@ class comp_monitor extends uvm_monitor;
       sample_start_time = $realtime;
 
       // ACQUISITION PHASE 
-      @(negedge m_vif.am_invert iff m_vif.am_short);
+      @(negedge m_vif.am_invert);
+      if (m_vif.am_short !== 1'b1) begin
+         continue; 
+      end
       
       m_comp_item = comp_item::type_id::create("m_comp_item");
-      //m_comp_item.state = comp_item::comp_state_e'(m_vif.debug_state);
+      //m_comp_item.state = comp_item::get_debug_state(m_vif.debug_state);
       m_comp_item.comp_stored_curr = m_vif.in;
       m_comp_item.comp_sample_time_ns = real'($realtime - sample_start_time);
 
@@ -51,14 +54,11 @@ class comp_monitor extends uvm_monitor;
       @(posedge m_vif.am_invert);
       decision_start_time = $realtime;
       m_comp_item.comp_compare_curr = m_vif.in;
-      //m_comp_item.comp_vdd          = m_vif.vdd;
+      m_comp_item.comp_vdd          = m_vif.vdd;
       //m_comp_item.comp_inv_bias     = m_vif.inv_bias; 
-
-
+     
       fork
-          // --------------------------------------------------
-          // WATCHDOG 1: Track the RNM Output
-          // --------------------------------------------------
+          // Track the RNM Output
           begin : rnm_watchdog
               fork
                   begin
@@ -73,9 +73,7 @@ class comp_monitor extends uvm_monitor;
               disable fork; // Kills ONLY the rnm_watchdog threads
           end : rnm_watchdog
 
-          // --------------------------------------------------
-          // WATCHDOG 2: Track the SPICE Output
-          // --------------------------------------------------
+          // Track the SPICE Output
           begin : spice_watchdog
               fork
                   begin
@@ -94,7 +92,7 @@ class comp_monitor extends uvm_monitor;
       m_comp_item.comp_out        = m_vif.am_cmpr_out_rnm;
       m_comp_item.comp_analog_out = m_vif.am_cmpr_out_spice;
 
-      collected_item.write(m_comp_item);
+      m_collected_item.write(m_comp_item);
     end
   endtask : run_phase
 

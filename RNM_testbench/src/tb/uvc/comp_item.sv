@@ -89,6 +89,7 @@ class comp_item extends uvm_sequence_item;
 
     //holding current comparator state
     comp_state_e state;
+    comp_state_e monitor_state;
 
     rand comp_state_e start_state;
     //randomized next state
@@ -100,6 +101,7 @@ class comp_item extends uvm_sequence_item;
     wave_config_s cfg_bias;
     wave_config_s cfg_vdd;
     wave_config_s cfg_vss;
+    wave_config_s drive_pin;
  
     `uvm_object_utils_begin(comp_item)
         // Note: realtime variables MUST use uvm_field_real
@@ -132,7 +134,6 @@ class comp_item extends uvm_sequence_item;
     function new (string name = "comp_item");
         super.new(name);
     endfunction : new
-
 
     constraint c_default_state_transition { state_transition dist {RANDOM := 1, INCORRECT := 1, CORRECT := 4}; }
     constraint c_default_timings { timing dist {RANDOM := 1, INCORRECT := 1, CORRECT := 4};}
