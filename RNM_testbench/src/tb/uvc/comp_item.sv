@@ -38,7 +38,7 @@ class comp_item extends uvm_sequence_item;
     real vss_samples [];
 
     //am_complete async driving
-    bit      am_complete_en=0; //disabled by default
+    rand bit am_complete_en; //disabled by default
     rand int am_complete_delay_ps;
     rand int am_complete_duration_ps;
 
@@ -119,6 +119,7 @@ class comp_item extends uvm_sequence_item;
 
         `uvm_field_int(am_complete_delay_ps, UVM_ALL_ON)
         `uvm_field_int(am_complete_duration_ps,   UVM_ALL_ON)
+        `uvm_field_int(am_complete_en, UVM_ALL_ON)
         // Analog Values
         `uvm_field_real(comp_acc, UVM_ALL_ON)
         `uvm_field_real(comp_in_curr, UVM_ALL_ON)
@@ -156,8 +157,8 @@ class comp_item extends uvm_sequence_item;
     }
 
     constraint c_am_complete {
-        am_complete_delay_ps inside {[1000 : 20_000_000]}; 
-        am_complete_duration_ps inside {[1000 : 50_000]}; 
+        am_complete_delay_ps inside {[10_000 : 20_000_000]}; 
+        am_complete_duration_ps inside {[1_000_000 : 5_000_000]}; 
     }
 
     constraint c_state_transition {
@@ -190,10 +191,10 @@ class comp_item extends uvm_sequence_item;
 
     constraint c_timings {
         (timing == CORRECT) -> {
-            state == SAMPLE  -> comp_delay_ps inside {[(param_acq_time_ps/2) : param_acq_time_ps]}; // 2-10us
+            state == SAMPLE  -> comp_delay_ps inside {[(param_acq_time_ps/5) : param_acq_time_ps]}; // 2-10us
             state == HOLD   -> comp_delay_ps inside {[5_000_000 : 10_000_000]};          
-            state == COMPARE -> comp_delay_ps inside {[(param_dec_time_ps/2) : param_dec_time_ps]};        // max 2us
-            state == IDLE   -> comp_delay_ps == 100_000_000;                         // 50us
+            state == COMPARE -> comp_delay_ps inside {[(param_dec_time_ps/5) : param_dec_time_ps]};        // max 2us
+            state == IDLE   -> comp_delay_ps == 50_000_000;                         // 50us
             state == GLITCH -> comp_delay_ps == 100_000;                          // 100ns
         }
 

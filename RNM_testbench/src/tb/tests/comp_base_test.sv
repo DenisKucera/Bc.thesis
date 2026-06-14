@@ -21,7 +21,6 @@ class comp_base_test extends uvm_test;
 
     virtual function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        //if something goes terribly wrong
         uvm_top.set_report_max_quit_count(100);
         //create top level layer
         m_env_top = top_env::type_id::create("m_env_top", this);
@@ -46,6 +45,7 @@ class comp_base_test extends uvm_test;
         m_comp_sequence.start_state          = comp_item::IDLE;
         m_comp_sequence.cfg_state_transition = comp_item::CORRECT;
         m_comp_sequence.cfg_timing           = comp_item::CORRECT;
+        m_comp_sequence.cfg_am_complete_en   = 0;
         
         // By default all analog stimulus is disabled
         m_comp_sequence.cfg_in.w_type    = comp_item::DISABLE;

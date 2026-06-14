@@ -25,7 +25,7 @@ class comp_monitor extends uvm_monitor;
   // component constructor - required syntax for UVM automation and utilities
   function new (string name, uvm_component parent);
     super.new(name, parent);
-    m_collected_item = new("m_collected_item",this);
+    m_collected_item = new("mm_collected_item",this);
   endfunction : new
 
   
@@ -40,13 +40,10 @@ class comp_monitor extends uvm_monitor;
       sample_start_time = $realtime;
 
       // ACQUISITION PHASE 
-      @(negedge m_vif.am_invert);
-      if (m_vif.am_short !== 1'b1) begin
-         continue; 
-      end
+      @(negedge m_vif.am_invert iff m_vif.am_short);
       
       m_comp_item = comp_item::type_id::create("m_comp_item");
-      //m_comp_item.state = comp_item::get_debug_state(m_vif.debug_state);
+      //m_comp_item.state = comp_item::comp_state_e'(m_vif.debug_state);
       m_comp_item.comp_stored_curr = m_vif.in;
       m_comp_item.comp_sample_time_ns = real'($realtime - sample_start_time);
 
@@ -54,11 +51,11 @@ class comp_monitor extends uvm_monitor;
       @(posedge m_vif.am_invert);
       decision_start_time = $realtime;
       m_comp_item.comp_compare_curr = m_vif.in;
-      m_comp_item.comp_vdd          = m_vif.vdd;
+      //m_comp_item.comp_vdd          = m_vif.vdd;
       //m_comp_item.comp_inv_bias     = m_vif.inv_bias; 
-     
+
+
       fork
-          // Track the RNM Output
           begin : rnm_watchdog
               fork
                   begin
@@ -66,14 +63,13 @@ class comp_monitor extends uvm_monitor;
                       m_comp_item.comp_rnm_decision_time_ns = real'($realtime - decision_start_time);
                   end
                   begin
-                      @(negedge m_vif.am_invert); // Timeout!
+                      @(negedge m_vif.am_invert); // Timeout
                       m_comp_item.comp_rnm_decision_time_ns = 0.0; // It held its state
                   end
               join_any
               disable fork; // Kills ONLY the rnm_watchdog threads
           end : rnm_watchdog
 
-          // Track the SPICE Output
           begin : spice_watchdog
               fork
                   begin
@@ -81,7 +77,7 @@ class comp_monitor extends uvm_monitor;
                       m_comp_item.comp_spice_decision_time_ns = real'($realtime - decision_start_time);
                   end
                   begin
-                      @(negedge m_vif.am_invert); // Timeout!
+                      @(negedge m_vif.am_invert); // Timeout
                       m_comp_item.comp_spice_decision_time_ns = 0.0; // It held its state
                   end
               join_any

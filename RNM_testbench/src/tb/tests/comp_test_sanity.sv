@@ -27,10 +27,10 @@ virtual task run_phase(uvm_phase phase);
     m_comp_sequence.cfg_timing           = comp_item::CORRECT;
     // probably different waveform?
     m_comp_sequence.cfg_in.w_type    = comp_item::SINE;
-    m_comp_sequence.cfg_in.offset    = 10.0e-6;   
-    m_comp_sequence.cfg_in.amplitude = 5e-6;   
-    m_comp_sequence.cfg_in.period_ps = 1_000_000_000;
-    m_comp_sequence.cfg_in.step_ps   = 10_000; //10ns     
+    m_comp_sequence.cfg_in.offset    = 20.0e-6;   
+    m_comp_sequence.cfg_in.amplitude = 25.0e-6;   
+    m_comp_sequence.cfg_in.period_ps =   500_000_000;
+    m_comp_sequence.cfg_in.step_ps   =   300_000; //10ns     
     //correct voltage
     m_comp_sequence.cfg_vdd.w_type   = comp_item::STATIC;
     m_comp_sequence.cfg_vdd.offset   = 1.0;
