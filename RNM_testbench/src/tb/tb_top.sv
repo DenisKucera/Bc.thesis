@@ -13,9 +13,9 @@ module tb_top(in, vss, vdd, inv_bias);
     //RNM and TB parametrization (values can be overwritten, RNM params overide)
     parameter real        MAX_CURRENT           = 50.0e-6;
     parameter real        MAX_ERR_DB            = 0.25;
-    parameter real        MIN_ERR_DB            = 0.10;
-    parameter realtime    ACQ_TIME              = 20us;
-    parameter realtime    DECISION_TIME         = 10us;
+    parameter real        MIN_ERR_DB            = 0.1;
+    parameter realtime    ACQ_TIME              = 10us;
+    parameter realtime    DECISION_TIME         = 2us;
     parameter realtime    HOLD_TIME             = 300ps;
     parameter real        CURRENT_CONSUMPTION   = 35.0e-9;
     parameter real        SUPPLY_MIN            = 0.65;
@@ -66,9 +66,9 @@ module tb_top(in, vss, vdd, inv_bias);
         assign rn_am_clk_sample = vif.am_clk_sample;
 
         assign w_vdd = 1;
-        assign w_in = (vif.in*10e4);
+        assign w_in = (vif.in*10.0e4);
         assign w_vss = 0.0;
-        assign w_inv_bias = (vif.inv_bias*10e6);
+        assign w_inv_bias = (vif.inv_bias*10.0e6);
 
         assign w_am_clk_sample = rn_am_clk_sample;
         assign w_am_short = rn_am_short;

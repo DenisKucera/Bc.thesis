@@ -40,16 +40,12 @@ task run_phase(uvm_phase phase);
     forever begin
       seq_item_port.get_next_item(req);
 
-      // 1. ASYNCHRONNÍ INJEKCE (Spawnujeme ZCELA MIMO hlavní blok)
       if (req.am_complete_en) begin
           fork
             drive_async_complete(req); 
           join_none 
       end
 
-      // 2. HLAVNÍ SYNCHRONNÍ A ANALOGOVÝ BĚH
-      // Tím, že to pojmenujeme (sample_threads), zajistíme, 
-      // že 'disable fork' zabije jen vlákna uvnitř tohoto bloku!
       fork begin : sample_threads
           fork
             // Digital sequence control
@@ -59,9 +55,8 @@ task run_phase(uvm_phase phase);
             begin drive_in_pin(req.in_samples, req.cfg_in.step_ps); end
             begin drive_vdd_pin(req.vdd_samples, req.cfg_vdd.step_ps); end
             begin drive_bias_pin(req.bias_samples, req.cfg_bias.step_ps); end
-          join_any // Odblokuje se AŽ skončí comparator_control
+          join_any 
 
-          // Zabije pouze analogová vlákna (a nikoliv naše async vlákno nahoře!)
           disable fork; 
       end : sample_threads join
 

@@ -59,11 +59,13 @@ ends u4428_afe_tgateHVT
 // The port names here match your SystemVerilog module perfectly.
 subckt comparator am_clk_sample am_short am_invert in inv_bias am_cmpr_out am_complete vdd vss
 
-    G_bias (vdd bias_pre_probe inv_bias 0) vccs gm=1e-7
-    G_in   (vdd in_pre_probe in 0) vccs gm=1e-7
+    //G_bias (vdd bias_pre_probe inv_bias 0) vccs gm=1e-7
+    //G_in   (vdd in_pre_probe in 0) vccs gm=1e-7
+    G_bias (bias_pre_probe 0 inv_bias 0) vccs gm=1.0e-7
+    G_in   (in_pre_probe 0 in 0) vccs gm=1.0e-5
 
-    V_probe_bias (bias_pre_probe bias_internal) vsource dc=0
-    V_probe_in   (in_pre_probe in_internal) vsource dc=0
+    V_probe_bias (bias_internal bias_pre_probe) vsource dc=0
+    V_probe_in   (in_internal in_pre_probe) vsource dc=0
 
     //RC filtr am_clk_sample
     R_filter_sample (am_clk_sample am_clk_sample_filtered) resistor r=1K

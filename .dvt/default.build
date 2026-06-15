@@ -33,7 +33,7 @@ RNM_testbench/src/tb/uvc/comp_uvc_pkg.sv
 RNM_testbench/src/tb/top_pkg.sv
 RNM_testbench/src/tb/tests/comp_test_pkg.sv
 # Design files
-RNM_model/src/sv/comparator_RNM.sv
+RNM_testbench/src/model/comparator_RNM.sv
 
 # Verification / Testbench files
 # Make sure to list the new files we just created!

@@ -12,7 +12,7 @@ simulatorOptions options reltol=1e-3 vabstol=1e-6 iabstol=1e-12
 save tb_top.genblk1.dut_spice_inst.dut_spice.V_probe_bias:p
 save tb_top.genblk1.dut_spice_inst.dut_spice.V_probe_in:p
 
-my_tran_sim tran stop=4m step=1ns
+my_tran_sim tran stop=15m step=1ns
 
 // The AMSD Bridge Block
 amsd {

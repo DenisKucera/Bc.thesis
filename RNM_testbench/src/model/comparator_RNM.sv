@@ -3,7 +3,7 @@
  * File: comparator_RNM.sv
  * Author: Denis Kucera
  * Created: 2025-11-30
- * Ver. 2.1 added decision time randomization and fixed current model + fix bugs
+ * Ver. 2.3 added decision time randomization and fixed current model + fix bugs
  * Description: SystemVerilog Comparator Real Number Model
  */
 
@@ -33,41 +33,47 @@ module comparator_RNM #(
     real stored_current  = 0.0;
     real current_draw;
     real sample_start_time = 0;
+    real inv_bias_ok;
+    real in_ok;
 
     logic cmpr_enabled;
     logic cmpr_out;
 
-    initial cmpr_out = 1'b0;
+    initial cmpr_out = 1'b1;
 
+
+    function real abs(input real val);
+        return (val < 0) ? -val : val;
+    endfunction
 
     // Saturation
     function real apply_saturation(input real in_val);
-        real abs_val;
-        abs_val = (in_val < 0) ? -in_val : in_val;
-
-        if (abs_val > MAX_CURRENT)
-            return (in_val < 0) ? -MAX_CURRENT : MAX_CURRENT;
-        else
-            return in_val;
+        if (abs(in_val) < inv_bias_ok) begin
+            return 0.0;
+        end
+        else if (abs(in_val) > MAX_CURRENT) begin
+            return MAX_CURRENT;
+        end
+        else begin
+            return abs(in_val);
+        end
     endfunction
 
     //function for calculating offset
     function real calc_offset(input real in_val);
-        real eff_input;
-        real mag;
         real dyn_db;
         real rnd_sign;
         real prec_factor;
+        real eff_input;
 
         eff_input = apply_saturation(in_val);
-        mag = (eff_input < 0) ? -eff_input : eff_input;
 
         // BIAS current
-        if (mag < (inv_bias * 1.2)) begin
+        if (eff_input < inv_bias_ok) begin
             return 0.0;
         end else begin
             // dyn. error
-            dyn_db = MIN_ERR_DB + (MAX_ERR_DB - MIN_ERR_DB) * (inv_bias / mag);
+            dyn_db = MIN_ERR_DB + (MAX_ERR_DB - MIN_ERR_DB) * (real'($urandom_range(0, 1000)) / 1000.0);
 
             // Clamp
             if (dyn_db > MAX_ERR_DB) dyn_db = MAX_ERR_DB;
@@ -88,40 +94,44 @@ module comparator_RNM #(
     always @(vdd) begin
         // max
         assert ((vdd-vss) <= SUPPLY_MAX) else
-            $fatal(0, "[COMPARATOR_RNM] Supply Voltage too HIGH! =%0.3fV (Max: %0.3fV)", vdd, SUPPLY_MAX);
+            $error(0, "[COMPARATOR_RNM] Supply Voltage too HIGH! =%0.3fV (Max: %0.3fV)", vdd, SUPPLY_MAX);
     end
 
     // enable/disable comparator
     assign cmpr_enabled = ((vdd-vss) >= SUPPLY_MIN) && (am_complete == 1'b0);
     // comparator output
     assign am_cmpr_out = cmpr_enabled ? cmpr_out : 1'bx;
+    // valid bias current
+    assign inv_bias_ok = (inv_bias >= abs(BIAS_CURRENT)) ? inv_bias : 0.0;
+    // input current boundaries
+    assign in_ok = apply_saturation(in);
 
     // SAMPLE
     always @(posedge am_clk_sample)
     begin
         sample_start_time <= $realtime;
+        cmpr_out <= 1'b1;
     end
 
     always @(negedge am_invert iff(am_short)) begin 
-        
+        real sampled_current;
         real charge_factor;
-        if(in > inv_bias && inv_bias > BIAS_CURRENT) begin
-            if ($realtime - sample_start_time >= (ACQ_TIME/5)) begin
-                // 10us or more, it is 100% fully settled
-                stored_current <= apply_saturation(in);
+
+            if(in_ok > inv_bias_ok) begin
+                sampled_current = in_ok;
+            if ($realtime - sample_start_time >= (ACQ_TIME/2.0)) begin
+                // 100% fully settled
+                stored_current <= sampled_current;
             end else begin
                 // Calculate the partial charge 
-                charge_factor = 1.0 - $exp(-($realtime - sample_start_time) / (ACQ_TIME/5));
-                
+                charge_factor = 1.0 - $exp(-($realtime - sample_start_time) / (ACQ_TIME/4.0));
+                charge_factor = (charge_factor > 1.0) ? 1.0 : charge_factor;
                 // Store the partially settled value!
-                stored_current <= apply_saturation(in) * charge_factor;
-                
+                stored_current <= stored_current + (sampled_current - stored_current) * charge_factor;
+                    
                 $info("RNM: Sample switch opened early (%0.0f ns). Capacitor reached %0.1f%% charge.", 
-                    ($realtime - sample_start_time), charge_factor * 100.0);
+                        ($realtime - sample_start_time), charge_factor * 100.0);
             end
-        end
-        else begin
-            stored_current <= 0.0;
         end
         sample_start_time <= 0.0;
     end
@@ -130,31 +140,31 @@ module comparator_RNM #(
     always @(posedge am_short)
     begin
         #HOLD_TIME; // delay
-        cmpr_out <= 1'b0; //comparator invalid 
+        cmpr_out <= 1'b1; //comparator invalid 
     end
 
     // COMPARE
     always @(posedge am_invert iff !am_short) begin 
-
         real curr_input;
-        real abs_stored;
+        real comp_current;
         real dec_time;
 
         if(DECISION_TIME > 0) begin
-            dec_time = (DECISION_TIME/1000) * real'($urandom_range(1, 900));
-            #dec_time;
+            dec_time = (DECISION_TIME/1000) * real'($urandom_range(500, 1000));
         end
-
-        curr_input = apply_saturation(in);
-        abs_stored = (stored_current < 0) ? -stored_current : stored_current;
-        // current mirror fail or input current is out of range
-        if (curr_input < inv_bias || inv_bias < BIAS_CURRENT) begin 
-            curr_input = 0.0;
-        end else begin
-            if ((curr_input - stored_current + calc_offset(in)) > 0)
-                cmpr_out <= 1'b1;
-            else
-                cmpr_out <= 1'b0;
+        #dec_time;
+        curr_input = in_ok;
+        comp_current = curr_input - stored_current;
+        //TODO ...
+        if((abs(comp_current) < inv_bias_ok) || (curr_input > stored_current)) begin
+            cmpr_out <= 1;
+        end
+        else begin
+                //TODO ...
+                if ((comp_current + calc_offset(in)) > 0)
+                    cmpr_out <= 1'b1;
+                else
+                    cmpr_out <= 1'b0;
         end
     end
 

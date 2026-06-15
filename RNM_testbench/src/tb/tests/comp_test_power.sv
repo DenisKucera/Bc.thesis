@@ -41,8 +41,8 @@ virtual task run_phase(uvm_phase phase);
     m_comp_sequence.cfg_vdd.w_type     = comp_item::PULSE_POS;
     m_comp_sequence.cfg_vdd.offset     = 1.0;
     m_comp_sequence.cfg_vdd.amplitude  = 0.2;
-    m_comp_sequence.cfg_vdd.period_ps = 1_000_000;
-    m_comp_sequence.cfg_vdd.step_ps   = 1_000;     // 
+    m_comp_sequence.cfg_vdd.period_ps = 10_000_000;
+    m_comp_sequence.cfg_vdd.step_ps   = 5_000_000;     // 
 
     m_comp_sequence.start(m_env_top.m_comp_env.m_comp_agent.m_comp_sequencer);
 
@@ -50,8 +50,8 @@ virtual task run_phase(uvm_phase phase);
     m_comp_sequence.cfg_vdd.w_type     = comp_item::PULSE_NEG;
     m_comp_sequence.cfg_vdd.offset     = 0.65;
     m_comp_sequence.cfg_vdd.amplitude  = 0.2;
-    m_comp_sequence.cfg_vdd.period_ps   = 1_000_000;
-    m_comp_sequence.cfg_vdd.step_ps     = 1_000;     // 
+    m_comp_sequence.cfg_vdd.period_ps   = 100_000_000;
+    m_comp_sequence.cfg_vdd.step_ps     = 10_000_000;     // 
 
     m_comp_sequence.start(m_env_top.m_comp_env.m_comp_agent.m_comp_sequencer);
 
@@ -60,7 +60,7 @@ virtual task run_phase(uvm_phase phase);
     m_comp_sequence.cfg_vdd.offset     = 0.85;
     m_comp_sequence.cfg_vdd.step_ps     = 1_000;  
 
-    m_comp_sequence.am_complete_en = 1;
+    m_comp_sequence.cfg_am_complete_en = 1;
 
     m_comp_sequence.start(m_env_top.m_comp_env.m_comp_agent.m_comp_sequencer);
 
