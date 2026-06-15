@@ -12,4 +12,4 @@ RNM_model/
 UVM_training/
 
 # VS Code junk
-.vscode/
+.vscode/.dvt/
