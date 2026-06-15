@@ -3,7 +3,7 @@
  * File: comparator_RNM.sv
  * Author: Denis Kucera
  * Created: 2025-11-30
- * Ver. 2.3 added decision time randomization and fixed current model + fix bugs
+ * Ver. 2.4 final version, tested by co-simulation with comparator netlist
  * Description: SystemVerilog Comparator Real Number Model
  */
 
@@ -94,7 +94,7 @@ module comparator_RNM #(
     always @(vdd) begin
         // max
         assert ((vdd-vss) <= SUPPLY_MAX) else
-            $error(0, "[COMPARATOR_RNM] Supply Voltage too HIGH! =%0.3fV (Max: %0.3fV)", vdd, SUPPLY_MAX);
+            $fatal(0, "[COMPARATOR_RNM] Supply Voltage too HIGH! =%0.3fV (Max: %0.3fV)", vdd, SUPPLY_MAX);
     end
 
     // enable/disable comparator

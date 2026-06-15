@@ -10,7 +10,7 @@ class comp_env extends uvm_env;
   // Components of the environment
   comp_agent m_comp_agent;
   comp_scoreboard m_comp_scoreboard;
-  //comp_coverage m_comp_coverage;
+  comp_coverage m_comp_coverage;
 
   // component macro
   `uvm_component_utils(comp_env)
@@ -20,7 +20,7 @@ class comp_env extends uvm_env;
     super.new(name, parent);
   endfunction : new
 
-  bit cov_enabled;
+  int cov_enabled = 0;
 
   // UVM build_phase()
   function void build_phase(uvm_phase phase);
@@ -30,9 +30,13 @@ class comp_env extends uvm_env;
     //create scoreboard
     m_comp_scoreboard = comp_scoreboard::type_id::create("m_comp_scoreboard", this);
     //create coverage collector
-    /*if(!uvm_config_db#(int)::get(this,"", "COVERAGE COLLECTION ENABLED!", cov_enabled)) begin
+    if (!uvm_config_db#(int)::get(this,"", "COVERAGE COLLECTION ENABLED!", cov_enabled)) begin
+      `uvm_info(get_type_name(), "Couldn't get COVERAGE set up parameter ", UVM_LOW)
+      //cov_enabled=0;
+    end
+    if(cov_enabled) begin
       m_comp_coverage = comp_coverage::type_id::create("m_comp_coverage",this);
-    end*/
+    end
   endfunction : build_phase
   
   function void start_of_simulation_phase(uvm_phase phase);
@@ -41,9 +45,9 @@ class comp_env extends uvm_env;
 
   function void connect_phase(uvm_phase phase);
     m_comp_agent.m_comp_monitor.m_collected_item.connect(m_comp_scoreboard.m_comp_item_collected);
-    /*if(m_comp_coverage != null) begin
+    if(m_comp_coverage != null) begin
       m_comp_agent.m_comp_monitor.m_collected_item.connect(m_comp_coverage.analysis_export);
-    end*/
+    end
   endfunction
   
 endclass : comp_env

@@ -14,7 +14,7 @@ package comp_uvc_pkg;
 
     // Include the UVC files in the correct compilation order
     `include "comp_item.sv"
-    //`include "comp_coverage.sv"
+    `include "comp_coverage.sv"
     `include "comp_monitor.sv"
     `include "comp_scoreboard.sv"
     `include "comp_sequencer.sv"
