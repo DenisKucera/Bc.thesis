@@ -40,7 +40,7 @@ task run_phase(uvm_phase phase);
     forever begin
       seq_item_port.get_next_item(req);
 
-      if (req.am_complete_en) begin
+      if (req.am_complete_en==1) begin
           fork
             drive_async_complete(req); 
           join_none 

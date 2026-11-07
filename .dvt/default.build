@@ -21,14 +21,12 @@
 
 # 3. Include directories
 # Tells DVT where to look when it sees `include "my_first_test.sv"
-+incdir+RNM_model/src/sv
 +incdir+RNM_testbench/src/tb
 +incdir+RNM_testbench/src/tb/uvc
 +incdir+RNM_testbench/src/tb/tests
 
 # 4. Source Files (Compiled in order)
 # Note: Always compile packages first!
-RNM_model/src/sv/udn_pkg.sv
 RNM_testbench/src/tb/uvc/comp_uvc_pkg.sv
 RNM_testbench/src/tb/top_pkg.sv
 RNM_testbench/src/tb/tests/comp_test_pkg.sv
